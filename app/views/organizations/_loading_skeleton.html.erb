@@ -1,0 +1,22 @@
+<div role="status" class="animate-pulse">
+  <%# Results Count Heading Skeleton %>
+  <h2 class="text-2xl font-semibold mb-6 text-gray-800 bg-gray-200 rounded w-48 h-8"></h2>
+
+  <div class="space-y-4">
+    <% 10.times do %>
+      <%= render 'skeleton_card' %>
+    <% end %>
+  </div>
+
+  <%# Mimic pagination nav area %>
+  <div class="py-6 flex justify-center">
+    <div class="flex space-x-2">
+      <div class="h-8 bg-gray-200 rounded-lg w-8"></div>
+      <div class="h-8 bg-gray-200 rounded-lg w-8"></div>
+      <div class="h-8 bg-gray-200 rounded-lg w-8"></div>
+      <div class="h-8 bg-gray-200 rounded-lg w-8"></div>
+      <div class="h-8 bg-gray-200 rounded-lg w-8"></div>
+    </div>
+  </div>
+  <span class="sr-only">Loading search results...</span>
+</div>

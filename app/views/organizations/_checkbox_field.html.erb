@@ -1,0 +1,5 @@
+<div class="flex items-start">
+  <%= form.check_box field,
+      { checked: params[field].to_s == '1', id: field, class: "mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" }, '1', '0' %>
+  <%= form.label field, label, class: "ml-3 text-sm font-medium text-gray-700 cursor-pointer" %>
+</div>

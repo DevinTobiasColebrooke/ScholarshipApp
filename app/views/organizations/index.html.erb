@@ -1,0 +1,27 @@
+<div class="bg-gray-50 min-h-screen py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <h1 class="text-3xl font-bold mb-8 text-gray-900">Tax-Exempt Organization Search</h1>
+
+    <div class="lg:grid lg:grid-cols-12 lg:gap-8">
+
+      <%# 1. Render the new, clean search form partial %>
+      <div class="lg:col-span-4 mb-8 lg:mb-0">
+        <%= render 'search_form' %>
+      </div>
+
+      <%# 2. The results area with the Turbo Frame and loading skeleton %>
+      <div class="lg:col-span-8">
+        <%= turbo_frame_tag "organization_search_results" do %>
+          
+          <template data-turbo-frame-loading>
+            <%= render 'loading_skeleton' %>
+          </template>
+
+          <%# Render the results partial for initial load and subsequent replacements %>
+          <%= render 'organization_results' %>
+        <% end %>
+      </div>
+
+    </div>
+  </div>
+</div>

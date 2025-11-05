@@ -1,0 +1,18 @@
+<h2 class="text-2xl font-semibold mb-6 text-gray-800">
+  Results (
+    <%= number_with_delimiter(@total_count_display || @pagy.count) %>
+    Found)
+</h2>
+
+<div class="space-y-4">
+  <% @organizations.each do |org| %>
+    <%= render 'organization_result_card', org: org %>
+  <% end %>
+</div>
+
+<div class="py-6 flex justify-center">
+  <% if @pagy %>
+    <%# Using the instance method call @pagy.series_nav which should be available via controller inclusion. %>
+    <%== @pagy.series_nav(data: { turbo_frame: "organization_search_results" }) %>
+  <% end %>
+</div>

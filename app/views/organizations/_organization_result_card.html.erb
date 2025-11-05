@@ -1,0 +1,31 @@
+<div class="bg-white p-5 border border-gray-100 rounded-lg shadow-sm hover:shadow-md transition duration-150">
+  <h3 class="text-xl font-bold text-indigo-700 mb-1">
+    <%= link_to org.name, organization_path(org), class: "hover:underline", data: { turbo_frame: "_top" } %>
+    <span class="text-gray-500 font-normal text-base">(<%= org.ein %>)</span>
+  </h3>
+
+  <%# --- SIMPLIFIED METADATA LINE --- %>
+  <div class="mt-2 flex items-center gap-x-4 text-sm text-gray-600">
+    <%# Status Tag 1: Grant Status %>
+    <%= grant_status_tag(org) %>
+
+    <%# Status Tag 2: NTEE Code %>
+    <% if org.ntee_code.present? %>
+      <span class="text-xs font-mono bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+        NTEE: <%= org.ntee_code %>
+      </span>
+    <% end %>
+
+    <%# Status Tag 3: Filing Type %>
+    <% if org.pf_filing_req_cd == '1' %>
+      <span class="text-xs font-medium bg-gray-100 text-gray-800 px-2 py-1 rounded-full">
+        Private Foundation
+      </span>
+    <% end %>
+  </div>
+
+  <p class="text-gray-700 text-sm mt-4">
+    <strong>Primary Mission:</strong>
+    <%= truncate(org.activity_or_mission_desc.presence || org.primary_exempt_purpose_txt, length: 300) || '<span class="italic text-gray-400">Mission not available</span>'.html_safe %>
+  </p>
+</div>

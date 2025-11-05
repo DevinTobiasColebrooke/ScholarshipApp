@@ -6,6 +6,8 @@ gem "rails", "~> 8.0.2"
 gem "propshaft"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
+gem "pgvector", "~> 0.2.2"
+gem "neighbor"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -21,6 +23,15 @@ gem "jbuilder"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
 # gem "bcrypt", "~> 3.1.7"
+
+# Nokogiri for XML parsing
+gem 'nokogiri', '~> 1.18', '>= 1.18.10'
+
+# Faraday for HTTP requests
+gem 'faraday', '~> 2.14'
+
+# Agnostic pagination in plain ruby
+gem 'pagy', '~> 43.0'
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]
@@ -38,6 +49,11 @@ gem "kamal", require: false
 
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false
+
+# csv gem for CSV parsing
+gem 'csv', '~> 3.0'
+
+# Image processing library
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"

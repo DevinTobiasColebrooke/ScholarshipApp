@@ -1,0 +1,73 @@
+<%= turbo_frame_tag "organization_search_form" do %>
+  <%= form_with url: organizations_path,
+                method: :get,
+                class: "space-y-6 sticky top-8",
+                data: {                          
+                  turbo_frame: "organization_search_results",
+                  controller: "search",
+                  action: "turbo:submit-end->search#scrollToTop"
+              } do |form| %>
+
+    <div class="p-6 border-2 border-indigo-200 bg-indigo-50 rounded-xl shadow-lg">
+      <div class="flex items-center">
+        <%= form.check_box :preset_scholarship_search,
+            { checked: params[:preset_scholarship_search].to_s == '1', id: :preset_scholarship_search, class: "h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" }, '1', '0' %>
+        <label for="preset_scholarship_search" class="ml-3 block text-lg font-bold text-indigo-800">
+          Find All Scholarship Funders
+        </label>
+        <%= tooltip("Searches for 'scholarship' in organization names, missions, and grant purposes, and includes relevant NTEE codes.") %>
+      </div>
+    </div>
+
+    <div class="p-6 border border-gray-200 bg-white rounded-xl shadow-lg space-y-4">
+      <h3 class="text-xl font-semibold text-gray-800 border-b pb-3 mb-4">Refine Further</h3>
+      
+      <div>
+        <%= form.label :ein_query, "Search by EIN:", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.text_field :ein_query,
+              value: params[:ein_query],
+              placeholder: "e.g., 123456789",
+              class: "w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" %>
+      </div>
+      
+      <div>
+        <%= form.label :ntee_filter, "Filter by Grant Type (NTEE Code):", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.select :ntee_filter, 
+              ntee_filter_options, 
+              {},
+              class: "w-full p-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" %>
+      </div>
+
+      <div class="space-y-3 pt-4 border-t">
+        <h4 class="text-base font-medium text-gray-700">Additional Filters:</h4>
+        
+        <div class="flex items-center">
+          <%= render 'checkbox_field', form: form, field: :active_grantor_filter, label: "Show only active grant-makers" %>
+          <%= tooltip("Restricts results to organizations that have recently reported paying or approving grants.") %>
+        </div>
+        
+        <div class="flex items-center">
+          <%= render 'checkbox_field', form: form, field: :has_mission_filter, label: "Only show results with a mission statement" %>
+          <%= tooltip("Filters out organizations that have not yet had their detailed XML filing processed.") %>
+        </div>
+        
+        <div class="flex items-start pt-2">
+          <%= form.check_box :show_restricted_only,
+              { checked: params[:show_restricted_only].to_s == '1', id: :show_restricted_only, class: "mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" }, '1', '0' %>
+          <label for="show_restricted_only" class="ml-3 text-sm font-medium text-gray-800 cursor-pointer">
+            Show foundations that fund pre-selected charities
+            <%= tooltip("Filters for organizations that indicate they only fund pre-selected charities. This may mean they do not accept unsolicited requests, or that they have a separate, established application process.") %>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <%= link_to "Clear Filters", organizations_path,
+      class: "block text-center text-sm font-medium text-gray-500 hover:text-indigo-600 transition duration-150 py-2 pt-4",
+      data: { turbo_frame: "organization_search_results" } %>
+
+    <%= form.submit "Search Organizations",
+      class: "w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 cursor-pointer
+              fixed bottom-0 left-0 right-0 z-40 lg:static lg:mb-0 border-t lg:border-none border-gray-200 p-4 bg-white/95 lg:bg-indigo-600 backdrop-blur-sm" %>
+  <% end %>
+<% end %>

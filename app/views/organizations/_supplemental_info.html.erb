@@ -1,0 +1,20 @@
+<% if organization.supplemental_infos.any? %>
+  <h2 class="text-2xl font-semibold text-gray-800 border-t pt-6 mt-8 mb-4">Supplemental Itemized Information (Part V)</h2>
+  <div class="space-y-4">
+    <% organization.supplemental_infos.each do |info| %>
+      <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <h4 class="font-bold text-lg text-yellow-800 mb-1">
+          Part <%= info.part_num.presence || 'N/A' %>, Line <%= info.line_num.presence || 'N/A' %>
+          <% if info.explanation_amt.present? && info.explanation_amt.to_d.positive? %>
+            <span class="ml-4 text-indigo-700"><%= number_to_currency(info.explanation_amt, precision: 0) %></span>
+          <% end %>
+        </h4>
+        <p class="text-sm text-gray-700 whitespace-pre-wrap">
+          <%= info.explanation_txt %>
+        </p>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic mt-4">No itemized supplemental information found in the XML filing (Part V).</p>
+<% end %>
