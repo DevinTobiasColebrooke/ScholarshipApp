@@ -1,0 +1,115 @@
+<h2 class="text-2xl font-semibold text-gray-800 mb-4">Detailed Program Services (Part III)</h2>
+<% if @program_services.any? %>
+  <div class="space-y-6">
+    <% @program_services.each.with_index(1) do |service, index| %>
+      <div class="p-5 border border-blue-100 bg-blue-50 rounded-lg shadow-sm">
+        <h4 class="text-lg font-bold text-blue-800 mb-2">Program <%= index %> (<%= service.activity_code.presence || "N/A" %>)</h4>
+        
+        <p class="text-sm text-gray-700 whitespace-pre-wrap mb-3">
+          <%= service.description_txt %>
+        </p>
+
+        <div class="flex flex-wrap gap-x-6 text-xs text-gray-600">
+          <span class="font-medium">Grants for this activity: <%= number_to_currency(service.grant_amt, precision: 0) %></span>
+          <span class="font-medium">Expenses: <%= number_to_currency(service.expense_amt, precision: 0) %></span>
+          <span class="font-medium">Revenue: <%= number_to_currency(service.revenue_amt, precision: 0) %></span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic mb-8">No detailed program service accomplishments found in the XML filing (Part III).</p>
+<% end %>
+
+
+<h2 class="text-2xl font-semibold text-gray-800 border-t pt-6 mt-8 mb-4">Recent Grants Paid (Part XIV, Line 3a) (Total: <%= @total_grants_count %> Found)</h2>
+
+<% if @organization_grants.any? %>
+  <h3 class="text-xl font-semibold text-gray-700 mb-3 mt-6">Grants to Organizations (<%= @organization_grants.count %> Found)</h3>
+  <div class="space-y-4">
+    <% @organization_grants.each do |grant| %>
+      <% cleaned_name = grant.recipient_business_name.to_s.upcase.strip %>
+      <% recipient_org = @recipient_org_map[cleaned_name] %>
+      
+      <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
+          <h4 class="font-bold text-lg text-indigo-700">
+            <%= number_to_currency(grant.amount, precision: 0) %>
+          </h4>
+          <span class="text-base text-gray-700 font-medium">
+            Recipient: 
+            <% if recipient_org %>
+              <%= link_to recipient_org.name, organization_path(recipient_org), class: "text-indigo-600 hover:underline font-bold" %>
+              <span class="text-sm text-gray-500">(<%= recipient_org.ein %>)</span>
+            <% else %>
+              <%= grant.recipient_business_name.presence || "Unknown Organization" %>
+              <span class="text-sm text-gray-500">(Name not linked to organization in DB)</span>
+            <% end %>
+          </span>
+        </div>
+        
+        <p class="text-sm text-gray-600 mb-2">
+          **Purpose:** <%= grant.purpose_text %>
+        </p>
+
+        <div class="text-xs text-gray-500 space-y-1 mt-2">
+          <% if grant.recipient_relationship_txt.present? %>
+            <p><strong>Relationship:</strong> <%= grant.recipient_relationship_txt %></p>
+          <% end %>
+          <% if grant.recipient_foundation_status_txt.present? %>
+            <p><strong>Foundation Status:</strong> <%= grant.recipient_foundation_status_txt %></p>
+          <% end %>
+          <% if grant.recipient_us_address.present? %>
+            <p><strong>Address (US):</strong> <span class="whitespace-pre-wrap"><%= grant.recipient_us_address %></span></p>
+          <% elsif grant.recipient_foreign_address.present? %>
+            <p><strong>Address (Foreign):</strong> <%= grant.recipient_foreign_address.truncate(150) %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic mt-4">No organization grants found in the XML filing (Part XIV, Line 3a).</p>
+<% end %>
+
+<% if @individual_grants.any? %>
+  <h3 class="text-xl font-semibold text-gray-700 mb-3 mt-8 border-t pt-4">Grants to Individuals (<%= @individual_grants.count %> Found)</h3>
+  <div class="space-y-4">
+    <% @individual_grants.each do |grant| %>
+      <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
+          <h4 class="font-bold text-lg text-indigo-700">
+            <%= number_to_currency(grant.amount, precision: 0) %>
+          </h4>
+          <span class="text-base text-gray-700 font-medium">
+            Recipient: <%= grant.recipient_person_nm.presence || "Individual Recipient" %>
+          </span>
+        </div>
+        
+        <p class="text-sm text-gray-600 mb-2">
+          **Purpose:** <%= grant.purpose_text %>
+        </p>
+
+        <div class="text-xs text-gray-500 space-y-1 mt-2">
+          <% if grant.recipient_relationship_txt.present? %>
+            <p><strong>Relationship:</strong> <%= grant.recipient_relationship_txt %></p>
+          <% end %>
+          <% if grant.recipient_foundation_status_txt.present? %>
+            <p><strong>Foundation Status:</strong> <%= grant.recipient_foundation_status_txt %></p>
+          <% end %>
+          <% if grant.recipient_us_address.present? %>
+            <p><strong>Address (US):</strong> <span class="whitespace-pre-wrap"><%= grant.recipient_us_address %></span></p>
+          <% elsif grant.recipient_foreign_address.present? %>
+            <p><strong>Address (Foreign):</strong> <%= grant.recipient_foreign_address.truncate(150) %></p>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic mt-4">No individual grants found in the XML filing (Part XIV, Line 3a).</p>
+<% end %>
+
+<% if @total_grants_count == 0 && !@organization_grants.any? && !@individual_grants.any? %>
+  <p class="text-gray-500 italic">No grants were found in the XML filing (Part XIV, Line 3a).</p>
+<% end %>

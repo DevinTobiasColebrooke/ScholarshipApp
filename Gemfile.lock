@@ -195,6 +195,9 @@ GEM
     pg (1.6.2-aarch64-linux-musl)
     pg (1.6.2-x86_64-linux)
     pg (1.6.2-x86_64-linux-musl)
+    pg_search (2.3.7)
+      activerecord (>= 6.1)
+      activesupport (>= 6.1)
     pgvector (0.2.2)
     pp (0.6.3)
       prettyprint
@@ -373,6 +376,7 @@ DEPENDENCIES
   nokogiri (~> 1.18, >= 1.18.10)
   pagy (~> 43.0)
   pg (~> 1.1)
+  pg_search (~> 2.3, >= 2.3.6)
   pgvector (~> 0.2.2)
   propshaft
   puma (>= 5.0)

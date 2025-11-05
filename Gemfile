@@ -8,6 +8,7 @@ gem "propshaft"
 gem "pg", "~> 1.1"
 gem "pgvector", "~> 0.2.2"
 gem "neighbor"
+gem 'pg_search', '~> 2.3', '>= 2.3.6'
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -32,6 +33,8 @@ gem 'faraday', '~> 2.14'
 
 # Agnostic pagination in plain ruby
 gem 'pagy', '~> 43.0'
+
+
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]

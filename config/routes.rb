@@ -1,3 +1,4 @@
+# config/routes.rb
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -5,6 +6,9 @@ Rails.application.routes.draw do
     collection do
       get "search"  # /organizations/search?query=...
       get "potential_scholarship_grantors"  # /organizations/potential_scholarship_grantors
+    end
+    member do
+      get "grants_and_programs" # NEW: /organizations/:id/grants_and_programs
     end
   end
 

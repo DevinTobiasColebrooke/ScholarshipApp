@@ -1,7 +1,28 @@
 class Organization < ApplicationRecord
+  include PgSearch::Model
+
   has_many :grants, dependent: :destroy
   has_many :program_services, dependent: :destroy
   has_many :supplemental_infos, dependent: :destroy
+
+  # --- PgSearch Configuration for Comprehensive Scholarship Search ---
+  # NOTE: This is kept for the rake backfill task, but is not used by the live scope.
+  pg_search_scope :search_scholarships,
+    # Search Organization fields directly
+    against: [
+      :name,
+      :activity_or_mission_desc,
+      :primary_exempt_purpose_txt
+    ],
+    # Search associated Grant fields
+    associated_against: {
+      grants: [:purpose_text]
+    },
+    # Rely only on tsearch for speed
+    using: {
+      tsearch: { prefix: true, dictionary: "simple" }
+    }
+  # -----------------------------------------------------------------
 
   scope :private_foundation, -> { where(pf_filing_req_cd: "1") }
 
@@ -57,30 +78,9 @@ class Organization < ApplicationRecord
     where("activity_or_mission_desc ILIKE :q OR primary_exempt_purpose_txt ILIKE :q", q: "%#{query}%")
   }
 
+  # HIGHLY OPTIMIZED: Now simply searches the pre-calculated boolean column.
   scope :comprehensive_scholarship_search, -> {
-    keyword = "%scholarship%"
-
-    # Use Arel for clean OR conditions across tables
-    org_table = Organization.arel_table
-    grant_table = Grant.arel_table
-
-    # Conditions on the organizations table (Name and Mission fields)
-    org_conditions = org_table[:name].matches(keyword)
-      .or(org_table[:activity_or_mission_desc].matches(keyword))
-      .or(org_table[:primary_exempt_purpose_txt].matches(keyword))
-
-    # Condition on the grants table (Purpose Text)
-    grant_conditions = grant_table[:purpose_text].matches(keyword)
-
-    # Combine all conditions with LEFT JOIN to include orgs that match by name/mission
-    # but might not have a matching grant record yet.
-    left_outer_joins(:grants)
-      .where(
-        org_conditions # Match on Organization fields
-        .or(grant_conditions) # OR Match on Grant purpose
-      )
-      .or(where(id: scholarship_ntee_codes.select(:id))) # OR Match on NTEE codes
-      .distinct
+    where(is_scholarship_funder: true)
   }
 
   def has_grants_in_xml?

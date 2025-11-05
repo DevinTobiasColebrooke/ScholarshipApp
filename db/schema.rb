@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_05_033744) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_05_195657) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
   enable_extension "vector"
 
   create_table "grants", force: :cascade do |t|
@@ -71,7 +72,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_033744) do
     t.string "recipient_email_address_txt"
     t.decimal "total_grant_or_contri_apprv_fut_amt", precision: 18, scale: 2
     t.decimal "charitable_contribution_ded_amt", precision: 15, scale: 2
+    t.boolean "is_scholarship_funder", default: false
     t.index ["ein"], name: "index_organizations_on_ein", unique: true
+    t.index ["is_scholarship_funder"], name: "index_organizations_on_is_scholarship_funder"
     t.index ["name"], name: "index_organizations_on_name"
     t.index ["only_contri_preselected_ind"], name: "index_organizations_on_only_contri_preselected_ind"
   end
