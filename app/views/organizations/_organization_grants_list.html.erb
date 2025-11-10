@@ -1,0 +1,11 @@
+<h2 class="text-2xl font-semibold text-gray-800 border-t pt-6 mt-8 mb-4">Recent Grants Paid (Part XIV, Line 3a) (Total: <%= total_grants_count %> Found)</h2>
+
+<% if organization_grants.any? %>
+  <h3 class="text-xl font-semibold text-gray-700 mb-3 mt-6">Grants to Organizations (<%= organization_grants.count %> Found)</h3>
+  <div class="space-y-4">
+    <%# Renders organizations/grants/_organization_grant.html.erb for each item %>
+    <%= render partial: 'organizations/grants/organization_grant', collection: organization_grants, as: :organization_grant, locals: { recipient_org_map: recipient_org_map } %>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic mt-4">No organization grants found in the XML filing (Part XIV, Line 3a).</p>
+<% end %>

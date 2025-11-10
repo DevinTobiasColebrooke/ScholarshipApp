@@ -42,12 +42,12 @@
         <h4 class="text-base font-medium text-gray-700">Additional Filters:</h4>
         
         <div class="flex items-center">
-          <%= render 'checkbox_field', form: form, field: :active_grantor_filter, label: "Show only active grant-makers" %>
+          <%= render 'shared/forms/checkbox_field', form: form, field: :active_grantor_filter, label: "Show only active grant-makers" %>
           <%= tooltip("Restricts results to organizations that have recently reported paying or approving grants.") %>
         </div>
         
         <div class="flex items-center">
-          <%= render 'checkbox_field', form: form, field: :has_mission_filter, label: "Only show results with a mission statement" %>
+          <%= render 'shared/forms/checkbox_field', form: form, field: :has_mission_filter, label: "Only show results with a mission statement" %>
           <%= tooltip("Filters out organizations that have not yet had their detailed XML filing processed.") %>
         </div>
         

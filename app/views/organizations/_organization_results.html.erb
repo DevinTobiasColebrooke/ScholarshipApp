@@ -5,14 +5,12 @@
 </h2>
 
 <div class="space-y-4">
-  <% @organizations.each do |org| %>
-    <%= render 'organization_result_card', org: org %>
-  <% end %>
+  <%# Implicitly renders organizations/_organization.html.erb for each item %>
+  <%= render @organizations %>
 </div>
 
 <div class="py-6 flex justify-center">
   <% if @pagy %>
-    <%# Using the instance method call @pagy.series_nav which should be available via controller inclusion. %>
     <%== @pagy.series_nav(data: { turbo_frame: "organization_search_results" }) %>
   <% end %>
 </div>

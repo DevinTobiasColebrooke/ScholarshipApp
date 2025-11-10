@@ -5,177 +5,20 @@
     </h1>
     <p class="text-xl text-gray-500 mb-6">EIN: <%= @organization.ein %></p>
 
-    <% if @organization.only_contri_preselected_ind == 'X' %>
-      <div class="p-5 bg-red-50 border-l-4 border-red-500 rounded-lg mb-8" role="alert">
-        <div class="flex items-center">
-          <svg class="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <h3 class="text-lg font-bold text-red-800">THIS FOUNDATION DOES NOT ACCEPT UNSOLICITED REQUESTS</h3>
-        </div>
-        <p class="text-sm text-red-700 pt-2 ml-9">
-          XML filing indicates they **ONLY** make contributions to preselected charitable organizations (Part XIV, Line 2 check box is marked 'X').
-        </p>
-      </div>
-    <% end %>
+    <%= render 'organizations/details/preselected_warning', organization: @organization %>
     
-    <% if @organization.contributing_manager_nm.present? || @organization.shareholder_manager_nm.present? %>
-      <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-t pt-6">Manager Information</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-8 border-b pb-6">
-        <% if @organization.contributing_manager_nm.present? %>
-          <div>
-            <p class="font-semibold text-gray-700">Contributing Manager Name:</p>
-            <p class="text-gray-900"><%= @organization.contributing_manager_nm %></p>
-          </div>
-        <% end %>
-        <% if @organization.shareholder_manager_nm.present? %>
-          <div>
-            <p class="font-semibold text-gray-700">Shareholder Manager Name:</p>
-            <p class="text-gray-900"><%= @organization.shareholder_manager_nm %></p>
-          </div>
-        <% end %>
-      </div>
-    <% end %>
+    <%= render 'organizations/details/manager_information', organization: @organization %>
     
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm mb-8 border-b pb-6">
-      <div class="md:col-span-2">
-        <p class="font-semibold text-gray-700">Primary Exempt Purpose (From Part III):</p>
-        <p class="text-gray-900 italic">
-          <%= @organization.primary_exempt_purpose_txt.presence || 'Not available in filing.' %>
-        </p>
-      </div>
-      
-      <div>
-        <p class="font-semibold text-gray-700">Filing Status (PF_FILING_REQ_CD):</p>
-        <p class="text-gray-900"><%= @organization.pf_filing_req_cd == "1" ? "Private Foundation (990-PF)" : "Other Tax Exempt" %></p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-700">NTEE Code (NTEE_CD):</p>
-        <p class="text-gray-900"><%= @organization.ntee_code %></p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-700">Grants to Individuals (CSV):</p>
-        <p class="<%= @organization.grnt_indiv_cd == "Y" ? "text-green-600 font-medium" : "text-red-600" %>">
-          <%= @organization.grnt_indiv_cd == "Y" ? "Yes" : "No" %>
-        </p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-700">Grants to Individuals (XML Confirmed):</p>
-        <p class="<%= @organization.grants_to_individuals_ind == "X" ? "text-green-600 font-medium" : "text-gray-900" %>">
-          <%= @organization.grants_to_individuals_ind.presence || 'No XML Confirmation' %>
-        </p>
-      </div>
-      <div>
-        <p class="font-semibold text-gray-700">Approved Future Grants (GRNTAPPRVFUT):</p>
-        <p class="text-gray-900">
-          <% amount = @organization.grnt_apprv_fut.to_d rescue 0 %>
-          <%= amount > 0 ? number_to_currency(amount, precision: 0) : "None Reported" %>
-        </p>
-      </div>
-      
-      <% if @organization.website_address_txt.present? %>
-        <div class="md:col-span-2">
-          <p class="font-semibold text-gray-700">Website Address:</p>
-          <p class="text-indigo-600 hover:text-indigo-800 break-all">
-            <% url = @organization.website_address_txt %>
-            <% url = "http://#{url}" unless url.start_with?('http') %>
-            <%= link_to @organization.website_address_txt, url, target: "_blank", rel: "noopener" %>
-          </p>
-        </div>
-      <% end %>
-    </div>
+    <%= render 'organizations/details/metadata', organization: @organization %>
 
-    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Grant Application Details (Part XIV, Line 2)</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-8 border-b pb-6">
-      
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Submission Deadlines:</p>
-        <p class="text-base text-gray-900"><%= @organization.submission_deadlines_txt.presence || 'Not specified in XML.' %></p>
-      </div>
+    <%= render 'organizations/details/application_requirements', organization: @organization %>
 
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Application Materials:</p>
-        <p class="text-base text-gray-900"><%= @organization.application_materials_txt.presence || 'Not specified in XML.' %></p>
-      </div>
+    <%= render 'organizations/details/financial_summary', organization: @organization %>
 
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Restrictions on Awards:</p>
-        <p class="text-base text-gray-900"><%= @organization.restrictions_on_awards_txt.presence || 'Not specified in XML.' %></p>
-      </div>
-      
-      <% if @organization.recipient_email_address_txt.present? %>
-        <div class="p-3 bg-gray-50 rounded-lg">
-          <p class="font-semibold text-gray-700">Filing Email:</p>
-          <p class="text-base text-gray-900"><%= mail_to @organization.recipient_email_address_txt %></p>
-        </div>
-      <% end %>
-
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Filing Address:</p>
-        <p class="text-base text-gray-900 whitespace-pre-wrap"><%= @organization.us_address.presence || 'Not available.' %></p>
-      </div>
-      
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Filing Phone:</p>
-        <p class="text-base text-gray-900"><%= @organization.phone_num.presence || 'Not available.' %></p>
-      </div>
-
-    </div>
-
-    <h2 class="text-2xl font-semibold text-gray-800 mb-4">Financial Metrics</h2>
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm mb-8 border-b pb-6">
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Total Revenue (Part I):</p>
-        <p class="text-lg font-bold text-gray-900"><%= number_to_currency(@organization.cy_total_revenue_amt, precision: 0) %></p>
-      </div>
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">Qualifying Distributions (Part XI):</p>
-        <p class="text-lg font-bold text-gray-900"><%= number_to_currency(@organization.qualifying_distributions_amt, precision: 0) %></p>
-      </div>
-      <div class="p-3 bg-gray-50 rounded-lg">
-        <p class="font-semibold text-gray-700">FMV Total Assets (Index I):</p>
-        <p class="text-lg font-bold text-gray-900"><%= number_to_currency(@organization.fmv_assets_eoy_amt, precision: 0) %></p>
-      </div>
-
-      <%= render 'supplemental_info', organization: @organization %>
-      
-      <% if @organization.approved_future_grants_xml_amt && @organization.approved_future_grants_xml_amt > 0 %>
-        <div class="p-3 bg-green-50 rounded-lg sm:col-span-3">
-          <p class="font-semibold text-green-700">Approved Future Grants (Part XV):</p>
-          <p class="text-lg font-bold text-green-900">
-            <%= number_to_currency(@organization.approved_future_grants_xml_amt, precision: 0) %>
-            <span class="font-normal text-sm text-green-700">(Purpose: <%= @organization.approved_future_grants_purpose.truncate(100) %>)</span>
-          </p>
-        </div>
-      <% end %>
-
-      <% total_paid = @organization.total_grants_paid_xml_amt.to_d rescue 0 %>
-      <% if total_paid > 0 %>
-        <div class="p-3 bg-blue-50 rounded-lg">
-          <p class="font-semibold text-blue-700">Total Grants Paid (Part XIV Total):</p>
-          <p class="text-lg font-bold text-blue-900">
-            <%= number_to_currency(total_paid, precision: 0) %>
-          </p>
-        </div>
-      <% end %>
-
-      <% total_apprv_fut = @organization.total_grant_or_contri_apprv_fut_amt.to_d rescue 0 %>
-      <% if total_apprv_fut > 0 && total_apprv_fut != (@organization.approved_future_grants_xml_amt.to_d rescue 0) %>
-        <div class="p-3 bg-blue-50 rounded-lg">
-          <p class="font-semibold text-blue-700">Total Approved Future Grants (Part XV Total):</p>
-          <p class="text-lg font-bold text-blue-900">
-            <%= number_to_currency(total_apprv_fut, precision: 0) %>
-          </p>
-        </div>
-      <% end %>
-      
-    </div>
-
-    <%# --- LAZY LOADED HEAVY CONTENT STARTS HERE --- %>
+    <%# --- LAZY LOADED HEAVY CONTENT STARTS HERE (No lazy loading/skeleton) --- %>
     <%= turbo_frame_tag "organization_heavy_details", 
-                        src: grants_and_programs_organization_path(@organization), 
-                        loading: :lazy do %>
-      <%= render 'details_skeleton' %>
+                        src: grants_and_programs_organization_path(@organization) do %>
+      <%# Content will load here when the request is complete %>
     <% end %>
     <%# --- LAZY LOADED HEAVY CONTENT ENDS HERE --- %>
 

@@ -83,6 +83,12 @@ class Organization < ApplicationRecord
     where(is_scholarship_funder: true)
   }
 
+  scope :missing_xml_grant_details, -> {
+    comprehensive_scholarship_search
+      .grants_to_individuals
+      .where.not(id: Grant.select(:organization_id))
+  }
+
   def has_grants_in_xml?
     self.grants.exists?
   end
