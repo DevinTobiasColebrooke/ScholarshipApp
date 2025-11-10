@@ -1,11 +1,21 @@
 <%= turbo_frame_tag "organization_heavy_details" do %>
-  <%= render 'grants_and_programs_content', 
-    organization: @organization, 
-    program_services: @program_services,
-    organization_grants: @organization_grants,
-    individual_grants: @individual_grants,
-    total_grants_count: @total_grants_count,
-    recipient_org_map: @recipient_org_map %>
+  <%# 1. Program Services %>
+  <%= render 'program_services_list', program_services: @program_services %>
 
-  <%= link_to "← Back to Search", root_path(params.permit(:mission_query, :program_service_query, :grant_purpose_query, :scholarship_filter, :active_grantor_filter, :ntee_b82, :ntee_040, :ntee_561)), class: "mt-8 inline-block text-indigo-600 hover:underline" %>
+  <%# 2. Organization Grants %>
+  <%= render 'organization_grants_list', 
+      organization_grants: @organization_grants,
+      total_grants_count: @total_grants_count,
+      recipient_org_map: @recipient_org_map %>
+
+  <%# 3. Individual Grants %>
+  <%= render 'individual_grants_list', 
+      individual_grants: @individual_grants,
+      total_grants_count: @total_grants_count,
+      organization_grants: @organization_grants %>
+
+  <%= link_to "← Back to Search", 
+      root_path(params.permit(:mission_query, :program_service_query, :grant_purpose_query, :scholarship_filter, :active_grantor_filter, :ntee_b82, :ntee_040, :ntee_561)), 
+      class: "mt-8 inline-block text-indigo-600 hover:underline",
+      data: { turbo_frame: "_top" } %>
 <% end %>

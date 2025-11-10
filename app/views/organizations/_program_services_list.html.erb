@@ -1,0 +1,22 @@
+<h2 class="text-2xl font-semibold text-gray-800 mb-4">Detailed Program Services (Part III)</h2>
+<% if program_services.any? %>
+  <div class="space-y-6">
+    <% program_services.each.with_index(1) do |service, index| %>
+      <div class="p-5 border border-blue-100 bg-blue-50 rounded-lg shadow-sm">
+        <h4 class="text-lg font-bold text-blue-800 mb-2">Program <%= index %> (<%= service.activity_code.presence || "N/A" %>)</h4>
+        
+        <p class="text-sm text-gray-700 whitespace-pre-wrap mb-3">
+          <%= service.description_txt %>
+        </p>
+
+        <div class="flex flex-wrap gap-x-6 text-xs text-gray-600">
+          <span class="font-medium">Grants for this activity: <%= number_to_currency(service.grant_amt, precision: 0) %></span>
+          <span class="font-medium">Expenses: <%= number_to_currency(service.expense_amt, precision: 0) %></span>
+          <span class="font-medium">Revenue: <%= number_to_currency(service.revenue_amt, precision: 0) %></span>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <p class="text-gray-500 italic mb-8">No detailed program service accomplishments found in the XML filing (Part III).</p>
+<% end %>

@@ -1,0 +1,29 @@
+<% grant ||= individual_grant %>
+<div class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+  <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-1">
+    <h4 class="font-bold text-lg text-indigo-700">
+      <%= number_to_currency(grant.amount, precision: 0) %>
+    </h4>
+    <span class="text-base text-gray-700 font-medium">
+      Recipient: <%= grant.recipient_person_nm.presence || "Individual Recipient" %>
+    </span>
+  </div>
+  
+  <p class="text-sm text-gray-600 mb-2">
+    **Purpose:** <%= grant.purpose_text %>
+  </p>
+
+  <div class="text-xs text-gray-500 space-y-1 mt-2">
+    <% if grant.recipient_relationship_txt.present? %>
+      <p><strong>Relationship:</strong> <%= grant.recipient_relationship_txt %></p>
+    <% end %>
+    <% if grant.recipient_foundation_status_txt.present? %>
+      <p><strong>Foundation Status:</strong> <%= grant.recipient_foundation_status_txt %></p>
+    <% end %>
+    <% if grant.recipient_us_address.present? %>
+      <p><strong>Address (US):</strong> <span class="whitespace-pre-wrap"><%= grant.recipient_us_address %></span></p>
+    <% elsif grant.recipient_foreign_address.present? %>
+      <p><strong>Address (Foreign):</strong> <%= grant.recipient_foreign_address.truncate(150) %></p>
+    <% end %>
+  </div>
+</div>

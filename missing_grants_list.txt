@@ -1,0 +1,3 @@
+--- Identifying Private Foundations flagged for grants but missing XML details ---
+
+Total Organizations Missing Detail Data: 1777

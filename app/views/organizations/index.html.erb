@@ -9,14 +9,10 @@
         <%= render 'search_form' %>
       </div>
 
-      <%# 2. The results area with the Turbo Frame and loading skeleton %>
+      <%# 2. The results area with the Turbo Frame %>
       <div class="lg:col-span-8">
         <%= turbo_frame_tag "organization_search_results" do %>
           
-          <template data-turbo-frame-loading>
-            <%= render 'loading_skeleton' %>
-          </template>
-
           <%# Render the results partial for initial load and subsequent replacements %>
           <%= render 'organization_results' %>
         <% end %>
