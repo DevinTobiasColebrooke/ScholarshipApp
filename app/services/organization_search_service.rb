@@ -17,7 +17,6 @@ class OrganizationSearchService
     end
 
     organizations = apply_structured_filters(organizations)
-    organizations = apply_financial_filters(organizations)
     organizations = apply_identifier_search(organizations)
     organizations = apply_text_search(organizations)
     organizations = apply_program_service_search(organizations)
@@ -60,18 +59,6 @@ class OrganizationSearchService
 
     if params[:ntee_filter].present?
       organizations = organizations.filter_by_ntee(params[:ntee_filter])
-    end
-
-    organizations
-  end
-
-  def apply_financial_filters(organizations)
-    if params[:min_assets_amt].present? && params[:min_assets_amt].to_i > 0
-      organizations = organizations.min_fmv_assets(params[:min_assets_amt])
-    end
-
-    if params[:min_qualifying_distributions_amt].present? && params[:min_qualifying_distributions_amt].to_i > 0
-      organizations = organizations.min_qualifying_distributions(params[:min_qualifying_distributions_amt])
     end
 
     organizations
