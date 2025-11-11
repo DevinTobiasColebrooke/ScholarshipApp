@@ -40,14 +40,6 @@ class Organization < ApplicationRecord
     where("restrictions_on_awards_txt ILIKE :q", q: "%#{query}%")
   }
 
-  scope :min_qualifying_distributions, ->(amount) {
-    where("qualifying_distributions_amt >= ?", amount.to_i)
-  }
-
-  scope :min_fmv_assets, ->(amount) {
-    where("fmv_assets_eoy_amt >= ?", amount.to_i)
-  }
-
   scope :active_grantor_indicator, -> { grants_to_individuals.or(approved_future_grants) }
 
   scope :filter_by_ntee, ->(code) { where("ntee_code LIKE ?", "#{code}%") }
@@ -87,6 +79,21 @@ class Organization < ApplicationRecord
     comprehensive_scholarship_search
       .grants_to_individuals
       .where.not(id: Grant.select(:organization_id))
+  }
+
+  scope :exclude_demographic_keywords, -> {
+    exclusion_keywords = [
+      'veteran', 'military', 'black', 'african american', 'hispanic', 'latino',
+      'asian', 'middle eastern', 'native american', 'african', 'caribbean',
+      'men', 'male', 'boy'
+    ]
+
+    where_clause = exclusion_keywords.map { |k| "restrictions_on_awards_txt ILIKE '%#{k}%'" }.join(' OR ')
+    where.not(where_clause)
+  }
+
+  scope :profile_white_woman_26, -> {
+    comprehensive_scholarship_search.exclude_demographic_keywords
   }
 
   def has_grants_in_xml?

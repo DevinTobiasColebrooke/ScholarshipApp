@@ -9,13 +9,23 @@
               } do |form| %>
 
     <div class="p-6 border-2 border-indigo-200 bg-indigo-50 rounded-xl shadow-lg">
-      <div class="flex items-center">
+      <div class="flex items-center mb-4 pb-4 border-b border-indigo-200">
         <%= form.check_box :preset_scholarship_search,
             { checked: params[:preset_scholarship_search].to_s == '1', id: :preset_scholarship_search, class: "h-5 w-5 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" }, '1', '0' %>
         <label for="preset_scholarship_search" class="ml-3 block text-lg font-bold text-indigo-800">
           Find All Scholarship Funders
         </label>
         <%= tooltip("Searches for 'scholarship' in organization names, missions, and grant purposes, and includes relevant NTEE codes.") %>
+      </div>
+      
+      <%# NEW: Profile Filter %>
+      <div class="flex items-center">
+        <%= form.check_box :profile_white_woman_26,
+            { checked: params[:profile_white_woman_26].to_s == '1', id: :profile_white_woman_26, class: "h-5 w-5 text-pink-600 border-gray-300 rounded focus:ring-pink-500" }, '1', '0' %>
+        <label for="profile_white_woman_26" class="ml-3 block text-lg font-bold text-pink-800">
+          Filter for: White Woman/26 Profile
+        </label>
+        <%= tooltip("Applies the 'comprehensive scholarship search' scope, then excludes organizations with common demographic keywords (Veterans, Black, Hispanic, Asian, etc.) in their award restrictions.") %>
       </div>
     </div>
 

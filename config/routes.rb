@@ -1,14 +1,24 @@
-# config/routes.rb
 Rails.application.routes.draw do
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   resources :organizations, only: [:index, :show] do
     collection do
-      get "search"  # /organizations/search?query=...
-      get "potential_scholarship_grantors"  # /organizations/potential_scholarship_grantors
+      get "search"
+      get "potential_scholarship_grantors"
     end
     member do
-      get "grants_and_programs" # NEW: /organizations/:id/grants_and_programs
+      get "grants_and_programs"
+    end
+  end
+
+  resource :outreach_planner, only: [:index, :show], controller: 'outreach_planner'
+
+  resources :outreach_contacts, only: [:index, :show, :create] do
+    collection do
+      # POST to index is for starting the OutreachCampaignJob
+    end
+    member do
+      post :update_status
     end
   end
 
@@ -16,11 +26,6 @@ Rails.application.routes.draw do
   # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
-  # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
-  # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
   # Defines the root path route ("/")
-  # root "posts#index"
   root "organizations#index"
 end

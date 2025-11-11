@@ -178,11 +178,6 @@ class XmlExtractor
     update_fields.compact!
   end
 
-  # We remove the unused/incorrect complex extraction method.
-  # def extract_supplemental_info_data
-  #   ... (REMOVED) ...
-  # end
-
   def extract_program_services_data
     program_service_data = []
     xpath = "//IRS990PF/*[local-name()='PartIIIStatementOfProgramServiceAccomplishments']/*"
@@ -239,6 +234,7 @@ class XmlExtractor
   end
 
   # --- FINAL SCOPING FIX ---
-  public :extract_organization_fields
+  # These methods must be public so they can be called directly by the Rake tasks
+  public :extract_organization_fields, :extract_program_services_data, :extract_grants_paid_data
 end
 end

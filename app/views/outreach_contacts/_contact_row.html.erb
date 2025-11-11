@@ -1,0 +1,44 @@
+<% contact ||= local_assigns[:contact] %>
+<% target_frame_id = "log_dropdown_#{contact.id}" %>
+<% status_classes = contact.status_color_class.gsub('border-','text-').gsub('100', '800') %>
+<%# Use a class for the border on the <tr> for visual highlighting %>
+<tr id="<%= dom_id(contact) %>_row" class="hover:bg-gray-50 border-l-4 <%= contact.status_color_class.split.last %>">
+  
+  <td class="px-6 py-4 whitespace-nowrap">
+    <div class="text-sm font-medium text-gray-900">
+      <%= link_to contact.organization.name, organization_path(contact.organization), class: "text-indigo-600 hover:text-indigo-900 font-semibold", data: { turbo_frame: "_top" } %>
+    </div>
+    <div class="text-xs text-gray-500">
+      EIN: <%= contact.organization.ein %>
+    </div>
+  </td>
+  
+  <td class="px-6 py-4 whitespace-nowrap">
+    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <%= contact.status_color_class %> <%= status_classes %>">
+      <%= contact.status.humanize %>
+    </span>
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    <%= contact.updated_at.to_formatted_s(:short) %>
+  </td>
+
+  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+    <%= contact.contact_email.presence || contact.inferred_contact_email.presence || 'N/A' %>
+  </td>
+  
+  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+    <%# Clickable row: Use a link to load the details into a new row via Turbo %>
+    <%= link_to "History", outreach_contact_path(contact), 
+                class: "text-indigo-600 hover:text-indigo-900",
+                data: { 
+                  turbo_frame: target_frame_id,
+                  turbo_action: "after" 
+                } %>
+  </td>
+</tr>
+
+<%# This turbo frame is initially empty and is targeted by the 'History' link above %>
+<%= turbo_frame_tag target_frame_id, data: { status_color: contact.status_color_class } do %>
+  <%# The content from outreach_contacts/show.html.erb will be rendered here %>
+<% end %>

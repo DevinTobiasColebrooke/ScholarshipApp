@@ -1,3 +1,4 @@
+# app/controllers/organizations_controller.rb
 class OrganizationsController < ApplicationController
 
   def index
@@ -22,7 +23,8 @@ class OrganizationsController < ApplicationController
 
   def show
     # Only load the main organization record and supplemental info for the immediate view.
-    @organization = Organization.includes(:supplemental_infos).find(params[:id])
+    # Eager load outreach_contact for the new button logic
+    @organization = Organization.includes(:supplemental_infos, :outreach_contact).find(params[:id])
 
     # Financial data needed for the header section:
     @total_grants_count = (@organization.grants_to_individuals_ind == 'X' || @organization.grnt_indiv_cd == 'Y') ? "Potential" : "Unknown"
@@ -59,7 +61,6 @@ class OrganizationsController < ApplicationController
                                        .index_by { |o| o.name.upcase.strip }
 
     rescue => e
-      # Log the error for debugging, but prevent application crash
       Rails.logger.error "ERROR: Failed to load associated records for organization #{@organization.id}: #{e.message}"
       @organization_grants = []
       @individual_grants = []
@@ -71,11 +72,7 @@ class OrganizationsController < ApplicationController
     render layout: false
   end
 
-  # Removed def edit and def update
-
   def potential_scholarship_grantors
-    # NOTE: This action is unused since the root index handles all searching now.
-    # If this is still in use in routes, it should redirect or be removed.
     params[:scholarship_filter] = "1"
     search_service = OrganizationSearchService.new(organization_search_params)
     full_scope = search_service.call
@@ -90,12 +87,11 @@ class OrganizationsController < ApplicationController
   end
 
   private
-  # Removed set_organization method
 
   def organization_search_params
-    # We allow preset_scholarship_search to be an array if it's unintentionally repeated in the URL,
-    # and we take the last element, or the explicit value if it's a string.
     preset_value = Array(params[:preset_scholarship_search]).last || params[:preset_scholarship_search]
+
+    profile_value = Array(params[:profile_white_woman_26]).last || params[:profile_white_woman_26]
 
     permitted_params = params.permit(
       :ein_query,
@@ -106,11 +102,11 @@ class OrganizationsController < ApplicationController
       :active_grantor_filter,
       :show_restricted_only,
       :ntee_filter
-      # Note: :preset_scholarship_search is handled separately below
     ).to_h.deep_symbolize_keys
 
-    # Explicitly set the cleaned preset value
+    # Explicitly set the cleaned preset value and new profile value
     permitted_params[:preset_scholarship_search] = preset_value
+    permitted_params[:profile_white_woman_26] = profile_value # New line
 
     permitted_params.each do |key, value|
       if value == "0" || value.to_s.empty?
@@ -123,7 +119,11 @@ class OrganizationsController < ApplicationController
       permitted_params[:preset_scholarship_search] = nil
     end
 
+    # NEW: Clean the profile value as well
+    if permitted_params[:profile_white_woman_26] == "0"
+      permitted_params[:profile_white_woman_26] = nil
+    end
+
     permitted_params.compact
   end
-  # Removed organization_params method
 end

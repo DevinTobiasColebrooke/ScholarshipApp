@@ -9,16 +9,17 @@ class OrganizationSearchService
     organizations = Organization.all
 
     if params[:preset_scholarship_search] == "1"
-      # This uses the new, highly optimized PgSearch + NTEE union scope
       organizations = organizations.comprehensive_scholarship_search
+    end
+
+    if params[:profile_white_woman_26] == "1"
+      organizations = organizations.profile_white_woman_26
     end
 
     organizations = apply_structured_filters(organizations)
     organizations = apply_financial_filters(organizations)
     organizations = apply_identifier_search(organizations)
     organizations = apply_text_search(organizations)
-    # The dedicated PgSearch scope replaces these explicit joins when the preset is active,
-    # but we keep these for users utilizing the granular search fields below.
     organizations = apply_program_service_search(organizations)
     organizations = apply_grant_purpose_search(organizations)
     organizations = apply_restrictions_search(organizations)
@@ -45,9 +46,7 @@ class OrganizationSearchService
         return organizations.only_restricted_grants
     end
 
-    # Note: If preset_scholarship_search is '1', we skip this potential_scholarship_grantor filter
-    # as the comprehensive search already includes the necessary NTEE codes.
-    if params[:scholarship_filter] == "1" && params[:preset_scholarship_search] != "1"
+    if params[:scholarship_filter] == "1" && params[:preset_scholarship_search] != "1" && params[:profile_white_woman_26] != "1"
       organizations = organizations.potential_scholarship_grantor
     end
 
@@ -80,8 +79,6 @@ class OrganizationSearchService
 
   def apply_text_search(organizations)
     if params[:mission_query].present?
-      # Note: We are keeping the basic ILIKE search here for mission_query,
-      # as we haven't created a general-purpose FTS index for all text fields yet.
       organizations = organizations.search_mission_text(params[:mission_query])
     end
     organizations

@@ -1,0 +1,22 @@
+<div class="max-w-xl mx-auto py-10 w-full">
+  <h1 class="text-3xl font-bold mb-8 text-gray-900">1. Select Outreach Profile</h1>
+
+  <%= form_with url: outreach_planner_path, method: :get, class: "space-y-6 p-6 border border-indigo-200 bg-indigo-50 rounded-xl shadow-lg" do |form| %>
+    <h3 class="text-xl font-semibold text-indigo-800">Available Profiles</h3>
+
+    <div class="space-y-4">
+      <% @available_profiles.each do |key, value| %>
+        <div class="flex items-center">
+          <input type="radio" id="profile_<%= key %>" name="profile_name" value="<%= key %>" required class="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500">
+          <label for="profile_<%= key %>" class="ml-3 text-lg text-gray-700 font-medium cursor-pointer">
+            <%= value %>
+          </label>
+        </div>
+      <% end %>
+    </div>
+    
+    <button type="submit" class="w-full py-3 px-4 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200">
+      View Projected Count
+    </button>
+  <% end %>
+</div>
