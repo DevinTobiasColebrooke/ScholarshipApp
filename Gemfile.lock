@@ -375,6 +375,7 @@ DEPENDENCIES
   neighbor
   nokogiri (~> 1.18, >= 1.18.10)
   pagy (~> 43.0)
+  parallel
   pg (~> 1.1)
   pg_search (~> 2.3, >= 2.3.6)
   pgvector (~> 0.2.2)

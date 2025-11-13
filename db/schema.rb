@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_11_061826) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_13_024110) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -73,7 +73,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_11_061826) do
     t.decimal "total_grant_or_contri_apprv_fut_amt", precision: 18, scale: 2
     t.decimal "charitable_contribution_ded_amt", precision: 15, scale: 2
     t.boolean "is_scholarship_funder", default: false
+    t.vector "embedding", limit: 768
     t.index ["ein"], name: "index_organizations_on_ein", unique: true
+    t.index ["embedding"], name: "index_organizations_on_embedding", using: :ivfflat
     t.index ["is_scholarship_funder"], name: "index_organizations_on_is_scholarship_funder"
     t.index ["name"], name: "index_organizations_on_name"
     t.index ["only_contri_preselected_ind"], name: "index_organizations_on_only_contri_preselected_ind"
@@ -87,6 +89,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_11_061826) do
     t.text "draft_purpose_vector", comment: "Embedding of the specific profile or draft prompt"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "campaign_name"
     t.index ["organization_id"], name: "index_outreach_contacts_on_organization_id", unique: true
   end
 

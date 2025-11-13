@@ -101,7 +101,11 @@ class OrganizationsController < ApplicationController
       :page,
       :active_grantor_filter,
       :show_restricted_only,
-      :ntee_filter
+      :ntee_filter,
+      :preset_scholarship_search,
+      :profile_white_woman_26,
+      :commit,
+      :semantic_query
     ).to_h.deep_symbolize_keys
 
     # Explicitly set the cleaned preset value and new profile value

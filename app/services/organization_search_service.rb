@@ -8,6 +8,10 @@ class OrganizationSearchService
   def call
     organizations = Organization.all
 
+    if params[:semantic_query].present?
+      return apply_semantic_search(organizations)
+    end
+
     if params[:preset_scholarship_search] == "1"
       organizations = organizations.comprehensive_scholarship_search
     end
@@ -27,6 +31,11 @@ class OrganizationSearchService
   end
 
   private
+
+  def apply_semantic_search(organizations)
+    embedding = EmbeddingService.call(params[:semantic_query], task: 'search_query')
+    organizations.nearest_neighbors(:embedding, embedding, distance: "euclidean").first(100)
+  end
 
   def apply_identifier_search(organizations)
     if params[:ein_query].present?

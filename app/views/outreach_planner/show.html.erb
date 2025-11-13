@@ -18,6 +18,9 @@
     <% end %>
 
     <p class="text-lg font-medium text-gray-700">
+      **Campaign Name:** <%= @campaign_name %>
+    </p>
+    <p class="text-lg font-medium text-gray-700">
       **Selected Profile:** <%= @profile_display_name %>
     </p>
 
@@ -35,7 +38,7 @@
       <%= button_to "START Outreach & AI Drafting Program", 
           outreach_contacts_path, 
           method: :post,
-          params: { profile_name: @profile_name }, # Pass the profile name to the job
+          params: { profile_name: @profile_scope_name, campaign_name: @campaign_name }, # Pass the profile name and campaign name to the job
           data: { turbo_confirm: "Start the continuous outreach program now? It will run in the background, one organization every 10 seconds." },
           class: "w-full mt-6 py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-4 focus:ring-green-500 focus:ring-offset-2 transition duration-200" %>
 

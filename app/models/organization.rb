@@ -1,9 +1,12 @@
 class Organization < ApplicationRecord
   include PgSearch::Model
 
+  has_neighbors :embedding
+
   has_many :grants, dependent: :destroy
   has_many :program_services, dependent: :destroy
   has_many :supplemental_infos, dependent: :destroy
+  has_one :outreach_contact, dependent: :destroy
 
   # --- PgSearch Configuration for Comprehensive Scholarship Search ---
   # NOTE: This is kept for the rake backfill task, but is not used by the live scope.
@@ -98,5 +101,18 @@ class Organization < ApplicationRecord
 
   def has_grants_in_xml?
     self.grants.exists?
+  end
+
+  def to_embeddable_text
+    text_content = [
+      "Organization Name: #{name}",
+      "Private Foundation Filing Requirement: #{pf_filing_req_cd}",
+      "NTEE Code: #{ntee_code}",
+      "Grants to Individuals Indicator: #{grants_to_individuals_ind}",
+      "Is Scholarship Funder: #{is_scholarship_funder}",
+      "Approved Future Grants Amount: #{approved_future_grants_xml_amt}",
+      "Mission: #{activity_or_mission_desc}"
+    ].compact.join("\n")
+    "search_document: #{text_content}"
   end
 end

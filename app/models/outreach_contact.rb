@@ -2,7 +2,7 @@ class OutreachContact < ApplicationRecord
   belongs_to :organization
   has_many :outreach_logs, dependent: :destroy
 
-  enum status: {
+  enum :status, {
     needs_response: 'needs_response', # Blue: Needs an email from user (default state)
     pending: 'pending',               # Yellow: Email sent, waiting for reply
     accepted: 'accepted',             # Green: Accepted (positive response)

@@ -15,8 +15,9 @@ class OutreachContactsController < ApplicationController
     # NEW: Handle the initiation POST request from the Planner
     # This is the "Start Outreach" button that triggers the campaign job.
     if request.post? && params[:profile_name].present?
-      OutreachCampaignJob.perform_later(params[:profile_name])
-      flash.notice = "Outreach campaign for #{params[:profile_name].humanize} started in the background! Watch the table populate."
+      campaign_name = params[:campaign_name].presence || "Unnamed Campaign"
+      OutreachCampaignJob.perform_later(params[:profile_name], campaign_name)
+      flash.notice = "Outreach campaign '#{campaign_name}' for #{params[:profile_name].humanize} started in the background! Watch the table populate."
       # Clear the post status and redirect to the list view
       redirect_to outreach_contacts_path
       return
