@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_05_195657) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_13_024110) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -73,10 +73,34 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_195657) do
     t.decimal "total_grant_or_contri_apprv_fut_amt", precision: 18, scale: 2
     t.decimal "charitable_contribution_ded_amt", precision: 15, scale: 2
     t.boolean "is_scholarship_funder", default: false
+    t.vector "embedding", limit: 768
     t.index ["ein"], name: "index_organizations_on_ein", unique: true
+    t.index ["embedding"], name: "index_organizations_on_embedding", using: :ivfflat
     t.index ["is_scholarship_funder"], name: "index_organizations_on_is_scholarship_funder"
     t.index ["name"], name: "index_organizations_on_name"
     t.index ["only_contri_preselected_ind"], name: "index_organizations_on_only_contri_preselected_ind"
+  end
+
+  create_table "outreach_contacts", force: :cascade do |t|
+    t.bigint "organization_id", null: false
+    t.string "status", default: "needs_response", null: false
+    t.datetime "last_contact_at"
+    t.string "contact_email", comment: "The email address actually used for outreach"
+    t.text "draft_purpose_vector", comment: "Embedding of the specific profile or draft prompt"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "campaign_name"
+    t.index ["organization_id"], name: "index_outreach_contacts_on_organization_id", unique: true
+  end
+
+  create_table "outreach_logs", force: :cascade do |t|
+    t.bigint "outreach_contact_id", null: false
+    t.string "log_type", null: false
+    t.text "details"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_at"], name: "index_outreach_logs_on_created_at"
+    t.index ["outreach_contact_id"], name: "index_outreach_logs_on_outreach_contact_id"
   end
 
   create_table "program_services", force: :cascade do |t|
@@ -103,6 +127,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_05_195657) do
   end
 
   add_foreign_key "grants", "organizations"
+  add_foreign_key "outreach_contacts", "organizations"
+  add_foreign_key "outreach_logs", "outreach_contacts"
   add_foreign_key "program_services", "organizations"
   add_foreign_key "supplemental_infos", "organizations"
 end

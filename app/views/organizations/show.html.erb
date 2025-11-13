@@ -5,6 +5,30 @@
     </h1>
     <p class="text-xl text-gray-500 mb-6">EIN: <%= @organization.ein %></p>
 
+    <%# NEW: Outreach Status/Button - links to the tracker or planner %>
+    <div class="mb-8 p-4 bg-gray-50 border border-gray-200 rounded-lg flex items-center justify-between">
+      <% if @organization.outreach_contact %>
+        <% contact = @organization.outreach_contact %>
+        <span class="text-lg font-semibold text-gray-800">
+          Outreach Status: 
+          <span class="px-3 py-1 rounded-full <%= contact.status_color_class.gsub('border-','text-').gsub('100', '800') %> font-bold">
+            <%= contact.status.humanize %>
+          </span>
+        </span>
+        <%= link_to "View Tracker Log", outreach_contacts_path, 
+                      class: "bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150",
+                      data: { turbo_frame: "_top" } %>
+      <% else %>
+        <span class="text-lg font-semibold text-gray-800">
+          Ready for Outreach
+        </span>
+        <%= link_to "Initiate Outreach Campaign", 
+                      outreach_planner_path, 
+                      class: "bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-150",
+                      data: { turbo_frame: "_top" } %>
+      <% end %>
+    </div>
+    
     <%= render 'organizations/details/preselected_warning', organization: @organization %>
     
     <%= render 'organizations/details/manager_information', organization: @organization %>
