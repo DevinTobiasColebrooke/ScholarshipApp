@@ -53,9 +53,7 @@ class Organization < ApplicationRecord
     private_foundation.scholarship_ntee_codes.active_grantor_indicator
   }
 
-  scope :search_by_ein, ->(ein) {
-    where("ein LIKE ?", "#{ein}%")
-  }
+  scope :search_by_ein, ->(ein) { where(ein: ein) }
 
   scope :has_mission, -> {
     where("activity_or_mission_desc IS NOT NULL OR primary_exempt_purpose_txt IS NOT NULL")
