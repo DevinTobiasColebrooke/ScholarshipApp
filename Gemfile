@@ -6,7 +6,7 @@ gem "rails", "~> 8.0.2"
 gem "propshaft"
 # Use postgresql as the database for Active Record
 gem "pg", "~> 1.1"
-gem "pgvector", "~> 0.2.2"
+gem "pgvector", "~> 0.3.2"
 gem "neighbor"
 gem 'pg_search', '~> 2.3', '>= 2.3.6'
 # Use the Puma web server [https://github.com/puma/puma]
