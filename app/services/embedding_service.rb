@@ -13,7 +13,7 @@ class EmbeddingService
     @text = text
     @task = task
     # IMPORTANT: Replace 'YOUR_WINDOWS_IP_ADDRESS' with the actual IP address of your Windows machine.
-    @uri = URI('http://172.18.48.1:8080/embeddings')
+    @uri = URI('http://172.18.48.1:8081/embeddings')
   end
 
   def call
