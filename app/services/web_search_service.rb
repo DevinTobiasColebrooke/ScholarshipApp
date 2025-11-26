@@ -41,6 +41,7 @@ class WebSearchService
         JSON.parse(response.body)
       else
         Rails.logger.error "WebSearchService: Error fetching search results: #{response.code} #{response.message}"
+        Rails.logger.error "WebSearchService: Raw response body: #{response.body}" # Added for detailed debugging
         nil
       end
     rescue StandardError => e

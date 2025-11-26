@@ -5,7 +5,7 @@ require 'json'
 class KnowledgeBaseService
   # Configuration for the Embedding Model Server
   # TODO: Move these configurations to Rails credentials or a dedicated initializer.
-  EMBEDDING_SERVER_URL = URI('http://172.18.48.1:8081/embedding').freeze
+  EMBEDDING_SERVER_URL = URI('http://10.0.0.202:8081/embedding').freeze
   EMBEDDING_DIMENSION = 768 # Confirmed by user's existing schema
   MAX_CHARS_FOR_EMBEDDING = 2000 # Matches original script's truncation limit
 

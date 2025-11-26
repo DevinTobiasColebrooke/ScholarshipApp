@@ -1,5 +1,5 @@
 # app/models/web_document.rb
 class WebDocument < ApplicationRecord
-  # Add pgvector support
-  has_vector :embedding, dimensions: 768
+  # Add pgvector support via neighbor gem
+  has_neighbors :embedding
 end

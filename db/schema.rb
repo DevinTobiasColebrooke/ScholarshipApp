@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_23_042339) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_23_225935) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -129,6 +129,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_042339) do
   create_table "web_documents", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "url"
+    t.text "content"
+    t.vector "embedding", limit: 768
   end
 
   add_foreign_key "grants", "organizations"

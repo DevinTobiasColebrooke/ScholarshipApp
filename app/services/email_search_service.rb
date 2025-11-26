@@ -14,8 +14,8 @@ class EmailSearchService
   # --- Model and Rate Limiting Configuration ---
   # These configurations are now for the local LLM.
   # TODO: Move these configurations to Rails credentials, application.yml, or a dedicated initializer.
-  LLM_BASE_URL = "http://172.18.48.1:8080".freeze
-  LLM_MODEL_NAME = "Meta-Llama-3.1-8B-Instruct-Q6_K.gguf".freeze
+  LLM_BASE_URL = "http://10.0.0.202:8080".freeze
+  LLM_MODEL_NAME = "Meta-Llama-3.1-8B-Instruct-Q8_0.guff".freeze
   LLM_API_KEY = "dummy".freeze # Local LLMs typically don't require a real API key
 
   # Configuration for web search, content fetching, and summarization/extraction
@@ -115,13 +115,22 @@ class EmailSearchService
   # Constructs a search query for the WebSearchService
   def build_web_search_query
     query_parts = []
-    query_parts << "#{@organization.name} scholarship contact email"
-    query_parts << "(site:.org OR site:.gov)" # Prioritize .org and .gov domains
+    query_parts << "#{@organization.name} contact email"
+    
+    # Extract state from address to make search more specific
+    if @organization.us_address.present?
+      state = @organization.us_address.split(',').map(&:strip).find { |part| part.match?(/\b[A-Z]{2}\b/) }
+      query_parts << state if state
+    end
+    
     query_parts << @organization.ein if @organization.ein.present?
+    query_parts << "(site:.org OR site:.gov)" # Prioritize .org and .gov domains
+    
     # Add website only if it's not a generic placeholder
     if @organization.website_address_txt.present? && !@organization.website_address_txt.match?(/n\/?a/i)
       query_parts << @organization.website_address_txt
     end
+    
     query_parts.join(" ")
   end
 
@@ -196,8 +205,25 @@ class EmailSearchService
 
   # Helper method to extract email using the local LLM
   def extract_email_with_llm(text_to_analyze)
+    state = @organization.us_address.present? ? @organization.us_address.split(',').map(&:strip).find { |part| part.match?(/\b[A-Z]{2}\b/) } : nil
+    system_prompt = <<-PROMPT
+You are an expert email address extractor. Your task is to find the contact email address for a specific organization from the provided text.
+
+Here is the information about the organization I am looking for:
+- Name: #{@organization.name}
+- EIN: #{@organization.ein}
+- State: #{state || 'Not specified'}
+
+Please find the most relevant email address for this exact organization. Prioritize emails for scholarship inquiries, grant programs, or general contact.
+
+If you find an email that is clearly associated with this organization, return ONLY that email address.
+If you cannot find an email address specifically for this organization, return exactly: not_found.
+Do not return emails for other organizations, even if they are mentioned in the text.
+Do not include any other text or explanation in your response.
+PROMPT
+    
     messages = [
-      { role: "system", content: "You are an expert email address extractor. Given the following text content, find the most relevant contact email address for the organization. Prioritize emails for scholarship inquiries, grant programs, or general contact. If you find an email, return ONLY that email address. If no email is found, return exactly: not_found. Do not include any other text or explanation." },
+      { role: "system", content: system_prompt.strip },
       { role: "user", content: text_to_analyze }
     ]
     response = @llm_client.chat(
