@@ -21,6 +21,7 @@ gem "stimulus-rails"
 gem "tailwindcss-rails"
 # Build JSON APIs with ease [https://github.com/rails/jbuilder]
 gem "jbuilder"
+gem "ruby-readability", require: "readability"
 
 # Parrallel
 gem "parallel"
@@ -31,8 +32,14 @@ gem "parallel"
 # Nokogiri for XML parsing
 gem 'nokogiri', '~> 1.18', '>= 1.18.10'
 
+# Ferrum for browser automation
+gem 'ferrum'
+
 # Faraday for HTTP requests
 gem 'faraday', '~> 2.14'
+
+# Ruby gem for OpenAI API (and compatible local LLMs)
+gem 'ruby-openai', '~> 6.0'
 
 # Agnostic pagination in plain ruby
 gem 'pagy', '~> 43.0'

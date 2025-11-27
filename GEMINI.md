@@ -70,3 +70,7 @@ rails test
 *   **Testing:** The project uses the default Rails testing framework (Minitest).
 *   **Search:** The `OrganizationSearchService` should be used for all organization searches. New search filters should be added to this service.
 *   **Embeddings:** The `EmbeddingService` is used to generate embeddings for semantic search. The `to_embeddable_text` method on the `Organization` model defines the text that is used to create the embedding.
+
+## Additional Documentation
+
+Detailed documentation for agent flow, local LLM implementation, email outreach planning, and Google Search grounding can be found in the `docs/` directory.

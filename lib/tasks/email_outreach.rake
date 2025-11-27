@@ -1,6 +1,14 @@
 namespace :email_outreach do
   desc "Test email search with a single organization"
   task test_search: :environment do
+    # Set logger to debug level and output to stdout for verbose testing
+    Rails.logger.level = :debug
+    Rails.logger.formatter = proc do |severity, datetime, progname, msg|
+      "#{datetime.strftime('%H:%M:%S')} #{severity}: #{msg}\n"
+    end
+    Rails.logger = Logger.new(STDOUT)
+    Rails.logger.level = :debug
+
     puts "="*60
     puts "TESTING EMAIL SEARCH SERVICE"
     puts "="*60
@@ -51,10 +59,10 @@ namespace :email_outreach do
 
     rescue EmailSearchService::DailyLimitReached => e
       puts "\n" + "!"*60
-      puts "DAILY LIMIT REACHED"
+      puts "SERVICE TEMPORARILY UNAVAILABLE"
       puts "!"*60
-      puts "Your API key has reached its daily quota."
-      puts "Wait until the quota resets (typically midnight Pacific Time) and try again."
+      puts "The local LLM server is temporarily unavailable or experiencing issues."
+      puts "Please ensure your local LLM server is running and try again."
 
     rescue => e
       puts "\n" + "!"*60
@@ -67,6 +75,72 @@ namespace :email_outreach do
       puts "  2. Is the API key valid?"
       puts "  3. Do you have internet connectivity?"
     end
+  end
+
+  desc "Test connection to local LLM server and model availability"
+  task test_llm_connection: :environment do
+    puts "="*60
+    puts "TESTING LOCAL LLM SERVER CONNECTION AND MODEL AVAILABILITY"
+    puts "="*60
+
+    # Ensure EmailSearchService is loaded to access its configurations
+    require_relative '../../app/services/email_search_service'
+
+    llm_base_url = EmailSearchService::LLM_BASE_URL
+    llm_api_key = EmailSearchService::LLM_API_KEY
+    llm_model_name = EmailSearchService::LLM_MODEL_NAME
+
+    puts "Attempting to connect to LLM server at: #{llm_base_url}"
+    puts "Expected model name: #{llm_model_name}"
+
+    begin
+      llm_client = OpenAI::Client.new(access_token: llm_api_key, uri_base: llm_base_url)
+
+      # Option 1: List models (if supported by the local LLM server)
+      # This is often not fully implemented in local OpenAI-compatible servers
+      # models_response = llm_client.models.list
+      # available_models = models_response['data'].map { |m| m['id'] }
+      # puts "Available models reported by server: #{available_models.join(', ')}" if available_models.any?
+      # puts "Is expected model '#{llm_model_name}' available? #{available_models.include?(llm_model_name)}"
+
+      # Option 2: Make a simple chat completion request (more robust test)
+      puts "\nAttempting a simple chat completion request..."
+      messages = [{ role: "user", content: "Hello, what is your name?" }]
+      response = llm_client.chat(
+        parameters: { model: llm_model_name, messages: messages, temperature: 0.1, max_tokens: 20 }
+      )
+
+      if response && response.dig("choices", 0, "message", "content").present?
+        puts "\n✓ SUCCESS: Successfully connected to LLM server and received a response."
+        puts "LLM responded: \"#{response.dig("choices", 0, "message", "content").strip}\""
+        puts "The local LLM service appears to be working correctly."
+      else
+        puts "\n✗ FAILURE: Connected to LLM server but received an unexpected or empty response."
+        puts "Full response: #{response.inspect}"
+        puts "This might indicate a problem with the model or its configuration on the server."
+      end
+
+    rescue Faraday::ConnectionFailed => e
+      puts "\n✗ FAILURE: Could not connect to LLM server."
+      puts "Error: #{e.message}"
+      puts "Please ensure your local LLM server is running and accessible at #{llm_base_url}."
+    rescue OpenAI::ConfigurationError => e
+      puts "\n✗ FAILURE: OpenAI client configuration error."
+      puts "Error: #{e.message}"
+      puts "Check LLM_BASE_URL and LLM_API_KEY in EmailSearchService."
+    rescue Faraday::ClientError => e # Catches 4xx, 5xx errors from the LLM server
+      puts "\n✗ FAILURE: LLM server returned an error response."
+      parsed_error = JSON.parse(e.response[:body]) rescue { "error" => { "message" => e.message } }
+      puts "HTTP Status: #{e.response[:status]}"
+      puts "Error Message: #{parsed_error.dig("error", "message")}"
+      puts "This often means the model '#{llm_model_name}' is not found or not loaded on the server."
+      puts "Please ensure the model is correctly configured and running on your local LLM server."
+    rescue StandardError => e
+      puts "\n✗ FAILURE: An unexpected error occurred."
+      puts "Error class: #{e.class}"
+      puts "Error message: #{e.message}"
+    end
+    puts "\n" + "="*60
   end
 
   desc "Test email search with multiple organizations to see success rate"
@@ -150,9 +224,9 @@ namespace :email_outreach do
     limit = args.extras.first&.to_i
 
     puts "="*60
-    puts "EMAIL SEARCH FOR 'WHITE WOMAN/26 PROFILE' CAMPAIGN"
+    puts "EMAIL SEARCH FOR 'WHITE WOMAN/26 PROFILE' CAMPAIGN (using local LLM)"
     puts "="*60
-    puts "Rate limit: 60 requests per minute (free tier)"
+    puts "Note: Rate limiting is applied to control local LLM requests."
 
     # Reset the daily limit flag at the start
     EmailSearchService.reset_daily_limit_flag
@@ -176,14 +250,14 @@ namespace :email_outreach do
 
     estimated_minutes = (total_orgs / 60.0).ceil
     puts "\n#{total_orgs} organizations to process."
-    puts "Estimated time: ~#{estimated_minutes} minutes at 60 requests/minute"
+    puts "Estimated time: ~#{estimated_minutes} minutes at 60 requests/minute (for local LLM)"
 
     if limit && limit > 0
       puts "\n[TEST MODE: Limited to #{limit} organizations]"
     end
 
     puts "\nNote: AI will search the web for ALL organizations, even those without website info in our database."
-    puts "If daily API limits are reached, the task will stop immediately."
+    puts "If the local LLM becomes unavailable or hits internal limits, the task will stop immediately."
     puts "You can resume by running this task again - it will skip already processed organizations."
 
     # Show first few organizations that will be processed
@@ -192,7 +266,7 @@ namespace :email_outreach do
       website_info = if org.website_address_txt.present? && !org.website_address_txt.match?(/n\/?a/i)
         org.website_address_txt
       else
-        "No website in DB (AI will search)"
+        "Will search web"
       end
       puts "  #{i + 1}. #{org.name} - #{website_info}"
     end
@@ -207,7 +281,7 @@ namespace :email_outreach do
     found_emails = 0
     not_found_emails = 0
     errors = 0
-    daily_limit_hit = false
+    service_unavailable_hit = false # Changed from daily_limit_hit
     processing_stopped = false
     mutex = Mutex.new
 
@@ -282,22 +356,22 @@ namespace :email_outreach do
                 puts "    Running totals: ✓#{found_emails} | ○#{not_found_emails} | ✗#{errors} | Rate: #{rate.round(1)} req/min"
               end
 
-            rescue EmailSearchService::DailyLimitReached => e
+            rescue EmailSearchService::DailyLimitReached => e # This exception now indicates local LLM service issues
               mutex.synchronize do
                 processing_stopped = true
-                daily_limit_hit = true
+                service_unavailable_hit = true
 
                 puts "\n" + "!"*60
-                puts "! DAILY API LIMIT REACHED - STOPPING ALL THREADS"
+                puts "! LOCAL LLM SERVICE UNAVAILABLE - STOPPING ALL THREADS"
                 puts "!"*60
-                puts "All available Gemini models have reached their daily quota."
+                puts "The local LLM server appears to be unavailable or has encountered a persistent error."
                 puts "All worker threads will stop immediately."
                 puts "\nProgress saved:"
                 puts "  ✓ Emails found: #{found_emails}"
                 puts "  ○ No email found: #{not_found_emails}"
                 puts "  ✗ Errors: #{errors}"
                 puts "\nTo resume later:"
-                puts "  1. Wait for the daily quota to reset (typically midnight Pacific Time)"
+                puts "  1. Ensure your local LLM server is running and accessible."
                 puts "  2. Run: rake email_outreach:find_emails"
                 puts "  3. Already processed organizations will be skipped automatically"
                 puts "!"*60
@@ -319,10 +393,10 @@ namespace :email_outreach do
                 puts "    ✗ ERROR: #{error_msg[0..100]}"
 
                 # If it looks like a quota error we missed, stop processing
-                if error_msg.downcase.include?('quota') || error_msg.downcase.include?('limit')
+                if error_msg.downcase.include?('connection failed') || error_msg.downcase.include?('refused')
                   processing_stopped = true
                   puts "\n" + "!"*60
-                  puts "! POSSIBLE QUOTA ERROR DETECTED - STOPPING"
+                  puts "! LLM CONNECTION ERROR - STOPPING"
                   puts "!"*60
                 end
               end
@@ -341,8 +415,8 @@ namespace :email_outreach do
     # Final summary
     elapsed_time = ((Time.now - start_time) / 60.0).round(1)
     puts "\n" + "="*60
-    if daily_limit_hit
-      puts "TASK STOPPED: DAILY API LIMIT REACHED"
+    if service_unavailable_hit
+      puts "TASK STOPPED: LOCAL LLM SERVICE UNAVAILABLE"
     elsif processing_stopped
       puts "TASK STOPPED: ERROR DETECTED"
     else
@@ -368,12 +442,12 @@ namespace :email_outreach do
     end
 
     # Next steps
-    if daily_limit_hit
+    if service_unavailable_hit
       puts "\n" + "="*60
       puts "NEXT STEPS:"
       puts "="*60
-      puts "Your API has hit its daily quota. To continue:"
-      puts "  1. Wait for quota reset (usually midnight Pacific Time)"
+      puts "The local LLM server appears to be unavailable. To continue:"
+      puts "  1. Ensure your local LLM server is running and accessible."
       puts "  2. Run: rake email_outreach:find_emails"
       puts "  3. The task will automatically skip the #{found_emails + not_found_emails} already processed"
     elsif found_emails > 0
