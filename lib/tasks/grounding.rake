@@ -2,55 +2,52 @@
 namespace :grounding do
   desc "Answer a question using web search grounding"
   task :answer_question, [:question] => :environment do |_, args|
-    question = args[:question]
+    question = ENV['QUESTION'] || args[:question]
     if question.blank?
       puts "Usage: rails grounding:answer_question['Your question here']"
+      puts "  OR: QUESTION='Your question here' rails grounding:answer_question"
       next
     end
 
-    puts "Answering question: '#{question}'"
+    puts "Original question: '#{question}'"
     puts "----------------------------------"
 
-    # 1. Search
-    puts "Step 1: Searching the web..."
-    search_results = WebSearchService.search(question)
-    
-    unless search_results && search_results['results']&.any?
-      puts "Could not find any search results for the question."
-      next
-    end
+    begin
+      # 1. & 2. Use the new RAG Service to get dense context
+      puts "Step 1: Running advanced RAG search to find and synthesize context..."
+      rag_service = RagSearchService.new(question)
+      context, sources, search_results = rag_service.search_and_synthesize
+      puts "Step 1 complete. Found context from #{sources.count} relevant sources."
 
-    top_urls = search_results['results'].first(3).map { |r| r['url'] }
-    puts "Found top URLs: #{top_urls.join(', ')}"
-
-    # 2. Fetch and build context
-    puts "\nStep 2: Fetching content and building context..."
-    context = ""
-    top_urls.each do |url|
-      puts "  - Fetching from #{url}"
-      content = WebSearchService.fetch_page_content(url)
-      if content.present?
-        # Truncate content to avoid overwhelming the LLM
-        truncated_content = content.truncate(8000)
-        context += "Source URL: #{url}\nContent:\n#{truncated_content}\n\n---\n\n"
+      puts "\n----------------------------------"
+      puts "WEB SEARCH RESULTS"
+      puts "----------------------------------"
+      if search_results && search_results["results"]&.any?
+        search_results["results"].each_with_index do |result, index|
+          puts "  [#{index + 1}] #{result['title']}"
+          puts "      URL: #{result['url']}"
+          puts "      Content: #{result['content']&.truncate(200)}"
+        end
       else
-        puts "    (No content found)"
+        puts "No web search results were returned."
       end
+
+      # 3. Generate grounded response from LLM
+      puts "\nStep 2: Generating grounded response from LLM..."
+      grounding_service = GroundingService.new
+      grounded_response = grounding_service.answer_from_context(question, context)
+
+      # 4. Display result
+      puts "\n----------------------------------"
+      puts "GROUNDED ANSWER"
+    rescue RagSearchService::RagSearchError => e
+      puts "\n--- ERROR ---"
+      puts "The RAG search process failed: #{e.message}"
+    rescue => e
+      puts "\n--- UNEXPECTED ERROR ---"
+      puts "An unexpected error occurred: #{e.class} - #{e.message}"
+      puts e.backtrace.join("\n")
     end
-
-    if context.blank?
-      puts "Could not fetch any content from the search result URLs."
-      next
-    end
-
-    # 3. Generate grounded response from LLM
-    puts "\nStep 3: Generating grounded response from LLM..."
-    grounding_service = GroundingService.new
-    grounded_response = grounding_service.answer_from_context(question, context)
-
-    # 4. Display result
-    puts "\n----------------------------------"
-    puts "GROUNDED ANSWER"
     puts "----------------------------------"
     puts "\nAnswer: #{grounded_response['answer']}"
     

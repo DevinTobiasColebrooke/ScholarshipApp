@@ -8,7 +8,7 @@ namespace :web_search do
 
     puts "Starting web search test with query: '#{args[:query]}'"
 
-    # 1. Search the web
+    # 1. Search the web using the instance's default engines
     puts "Step 1: Searching the web..."
     search_results = WebSearchService.search(args[:query])
 
@@ -17,8 +17,15 @@ namespace :web_search do
       next
     end
 
+    puts "  - Top 3 search results:"
+    search_results["results"].first(3).each_with_index do |result, index|
+      puts "    #{index + 1}. Title: #{result['title']}"
+      puts "       URL: #{result['url']}"
+      puts "       Snippet: #{result['content']&.truncate(100)}"
+    end
+
     first_url = search_results["results"].first["url"]
-    puts "  - Found URL: #{first_url}"
+    puts "  - Proceeding with first URL: #{first_url}"
 
     # 2. Fetch the page content
     puts "Step 2: Fetching page content..."

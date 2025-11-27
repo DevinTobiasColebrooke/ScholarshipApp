@@ -16,24 +16,26 @@ class WebSearchService
   # @param engines [String] Comma-separated list of engines to use.
   # @param categories [String] Comma-separated list of categories.
   # @return [Hash, nil] The parsed JSON response, or nil on error.
-  def self.search(query, engines: 'google,bing', categories: 'general')
+  def self.search(query, engines: nil, categories: 'general')
     uri = URI(SEARX_INSTANCE_URL)
     uri.path = '/search'
     params = {
       'q' => query,
       'format' => 'json',
-      'engines' => engines,
-      'categories' => categories
+      'categories' => categories,
+      'language' => 'en'
     }
-    uri.query = URI.encode_www_form(params)
+    params['engines'] = engines if engines.present?
 
     begin
       response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: uri.scheme == 'https') do |http|
-        request = Net::HTTP::Get.new(uri)
+        request = Net::HTTP::Post.new(uri.path)
+        request.set_form_data(params) # Send parameters as form data
+
+        # Add headers similar to the GET request for consistency
         request['Accept'] = 'application/json'
         request['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36'
-        request['Accept-Language'] = 'en-US,en;q=0.9'
-        request['Connection'] = 'keep-alive'
+        
         http.request(request)
       end
 
@@ -56,14 +58,14 @@ class WebSearchService
     html = browser.body
     browser.quit
 
-    # Parse the HTML and extract the text from the body
-    doc = Nokogiri::HTML(html)
+    # Use Readability to extract the main content as clean HTML
+    clean_html = Readability::Document.new(html).content
+
+    # Parse the cleaned HTML with Nokogiri to get the plain text
+    doc = Nokogiri::HTML(clean_html)
+    text = doc.text.to_s
     
-    # Remove script and style elements
-    doc.search('script', 'style').remove
-    
-    # Get the text, then clean up excessive blank lines
-    text = doc.at('body')&.text.to_s
+    # Clean up excessive blank lines
     text.gsub!(/(\n\s*){3,}/, "\n\n")
     
     text

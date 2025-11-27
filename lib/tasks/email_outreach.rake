@@ -1,6 +1,14 @@
 namespace :email_outreach do
   desc "Test email search with a single organization"
   task test_search: :environment do
+    # Set logger to debug level and output to stdout for verbose testing
+    Rails.logger.level = :debug
+    Rails.logger.formatter = proc do |severity, datetime, progname, msg|
+      "#{datetime.strftime('%H:%M:%S')} #{severity}: #{msg}\n"
+    end
+    Rails.logger = Logger.new(STDOUT)
+    Rails.logger.level = :debug
+
     puts "="*60
     puts "TESTING EMAIL SEARCH SERVICE"
     puts "="*60
