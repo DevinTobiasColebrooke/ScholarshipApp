@@ -15,7 +15,7 @@ class OutreachContact < ApplicationRecord
 
   # Automatically retrieve the best available email from the organization record
   def inferred_contact_email
-    organization.recipient_email_address_txt.presence
+    organization.org_contact_email.presence
   end
 
   # Triggers the AI Draft Job

@@ -15,7 +15,7 @@ class OutreachCampaignJob < ApplicationJob
       contact = OutreachContact.create!(
         organization: next_org,
         status: :needs_response,
-        contact_email: next_org.recipient_email_address_txt.presence,
+        contact_email: next_org.org_contact_email.presence,
         campaign_name: @campaign_name # Store the campaign name
       )
 

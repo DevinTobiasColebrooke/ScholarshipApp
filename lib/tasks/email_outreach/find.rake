@@ -3,10 +3,10 @@ require_relative 'helpers'
 namespace :email_outreach do
   extend EmailOutreachHelpers
 
-  desc "Find and store email addresses for organizations in the '#{CAMPAIGN_NAME}' campaign"
+  desc "Find and store email addresses for organizations in the '#{EmailOutreachHelpers::CAMPAIGN_NAME}' campaign"
   task :find_emails, [:limit] => :environment do |_task, args|
     limit = args[:limit]&.to_i
-    print_header("EMAIL SEARCH FOR '#{CAMPAIGN_NAME}' CAMPAIGN")
+    print_header("EMAIL SEARCH FOR '#{EmailOutreachHelpers::CAMPAIGN_NAME}' CAMPAIGN")
     puts "Note: Rate limiting is applied to control local LLM requests."
     EmailSearchService.reset_daily_limit_flag
 

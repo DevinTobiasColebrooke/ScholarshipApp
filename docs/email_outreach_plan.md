@@ -37,7 +37,7 @@ This Rake task automates the process of finding and storing email addresses for 
     2.  **Iterate and Search:** Loops through each identified organization.
     3.  **Find Email:** Instantiates `EmailSearchService` with the organization's `website_address_txt` and calls `find_email`.
     4.  **Update Records:**
-        *   If an email is found, updates the `organization.recipient_email_address_txt` and creates/updates an `OutreachContact` record with `status: 'needs_outreach'` and the found email.
+        *   If an email is found, updates the `organization.org_contact_email` and creates/updates an `OutreachContact` record with `status: 'needs_outreach'` and the found email.
         *   If no email is found, creates/updates an `OutreachContact` record with `status: 'needs_mailing'`.
     5.  **Logging:** Provides console output on the progress, including the number of organizations processed, emails found, and emails not found.
 
@@ -67,7 +67,7 @@ This Rake task automates the process of finding and storing email addresses for 
 ### 4. Update Organization and Outreach Status
 
 *   **Email Found:**
-    *   The `recipient_email_address_txt` field on the `Organization` record will be updated with the found email address.
+        The `org_contact_email` field on the `Organization` record will be updated with the found email address.
     *   An `OutreachContact` record will be created or updated with:
         *   `status`: 'needs_outreach'
         *   `contact_email`: The found email address.

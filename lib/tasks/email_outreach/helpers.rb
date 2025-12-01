@@ -70,7 +70,7 @@ module EmailOutreachHelpers
 
   def update_outreach_contact(org:, email:)
     if email
-      org.update(recipient_email_address_txt: email)
+      org.update(org_contact_email: email)
       OutreachContact.find_or_create_by(organization: org, campaign_name: CAMPAIGN_NAME) do |contact|
         contact.status = 'ready_for_email_outreach'
         contact.contact_email = email

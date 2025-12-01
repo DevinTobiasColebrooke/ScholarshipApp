@@ -17,10 +17,10 @@
     <p class="text-base text-gray-900"><%= organization.restrictions_on_awards_txt.presence || 'Not specified in XML.' %></p>
   </div>
   
-  <% if organization.recipient_email_address_txt.present? %>
+  <% if organization.org_contact_email.present? %>
     <div class="p-3 bg-gray-50 rounded-lg">
       <p class="font-semibold text-gray-700">Filing Email:</p>
-      <p class="text-base text-gray-900"><%= mail_to organization.recipient_email_address_txt %></p>
+      <p class="text-base text-gray-900"><%= mail_to organization.org_contact_email %></p>
     </div>
   <% end %>
 
