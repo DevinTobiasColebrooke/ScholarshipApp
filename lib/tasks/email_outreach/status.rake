@@ -1,4 +1,4 @@
-require_relative 'helpers'
+require_relative "helpers"
 
 namespace :email_outreach do
   extend EmailOutreachHelpers
@@ -8,8 +8,8 @@ namespace :email_outreach do
     print_header("CAMPAIGN STATUS: '#{EmailOutreachHelpers::CAMPAIGN_NAME}'")
 
     total = target_organizations.count
-    ready = OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME, status: 'ready_for_email_outreach').count
-    mailing = OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME, status: 'needs_mailing').count
+    ready = OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME, status: "ready_for_email_outreach").count
+    mailing = OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME, status: "needs_mailing").count
     processed = ready + mailing
     remaining = total - processed
 
@@ -27,7 +27,7 @@ namespace :email_outreach do
 
     if ready > 0
       puts "\n--- Recent emails found (last 5) ---"
-      OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME, status: 'ready_for_email_outreach')
+      OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME, status: "ready_for_email_outreach")
                      .includes(:organization).order(created_at: :desc).limit(5).each do |contact|
         puts "  • #{contact.organization.name}: #{contact.contact_email}"
       end

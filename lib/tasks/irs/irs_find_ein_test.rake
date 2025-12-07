@@ -1,5 +1,5 @@
-require 'nokogiri'
-require_relative 'irs_importer/xml_extractor'
+require "nokogiri"
+require_relative "irs_importer/xml_extractor"
 
 namespace :irs do
   desc "Tests search for a specific EIN using Ruby/Nokogiri (Usage: EIN=123456789 XML_DIR=/path/to/xml bin/rails irs:find_ein_test)"
@@ -17,7 +17,7 @@ namespace :irs do
     found = false
     search_count = 0
 
-    Dir.glob(File.join(xml_directory, '*.xml')).each do |xml_file|
+    Dir.glob(File.join(xml_directory, "*.xml")).each do |xml_file|
       search_count += 1
 
       begin
@@ -41,7 +41,7 @@ namespace :irs do
         # Silently skip errors
       end
 
-      print '.' if search_count % 500 == 0
+      print "." if search_count % 500 == 0
     end
 
     duration = Time.now - start_time

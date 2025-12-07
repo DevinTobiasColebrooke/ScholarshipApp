@@ -1,31 +1,31 @@
 # app/services/embedding_service.rb
-require 'net/http'
-require 'json'
+require "net/http"
+require "json"
 
 class EmbeddingService
   class EmbeddingError < StandardError; end
 
-  def self.call(text, task: 'search_query')
+  def self.call(text, task: "search_query")
     new(text, task: task).call
   end
 
-  def initialize(text, task: 'search_query')
+  def initialize(text, task: "search_query")
     @text = text
     @task = task
     # IMPORTANT: Replace 'YOUR_WINDOWS_IP_ADDRESS' with the actual IP address of your Windows machine.
-    @uri = URI('http://10.0.0.202:8081/embeddings')
+    @uri = URI("http://10.0.0.202:8081/embeddings")
   end
 
   def call
     http = Net::HTTP.new(@uri.host, @uri.port)
-    request = Net::HTTP::Post.new(@uri.path, { 'Content-Type' => 'application/json' })
+    request = Net::HTTP::Post.new(@uri.path, { "Content-Type" => "application/json" })
 
     # The model expects the text to be prefixed with the task type, unless it's already prefixed.
-    prefixed_text = if @text.start_with?('search_document: ')
+    prefixed_text = if @text.start_with?("search_document: ")
                       @text
-                    else
+    else
                       "#{@task}: #{@text}"
-                    end
+    end
 
     request.body = { content: prefixed_text }.to_json
 
@@ -35,8 +35,8 @@ class EmbeddingService
 
       body = JSON.parse(response.body)
 
-      if body.is_a?(Array) && body.first.is_a?(Hash) && body.first.key?('embedding')
-        embedding_data = body.first['embedding']
+      if body.is_a?(Array) && body.first.is_a?(Hash) && body.first.key?("embedding")
+        embedding_data = body.first["embedding"]
         if embedding_data.is_a?(Array)
           embedding_data.flatten.map(&:to_f)
         else

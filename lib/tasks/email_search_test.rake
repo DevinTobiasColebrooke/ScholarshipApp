@@ -1,7 +1,7 @@
 # lib/tasks/email_search_test.rake
 namespace :email_search do
   desc "Test the EmailSearchService for a specific organization"
-  task :test, [:name, :ein, :location] => :environment do |_, args|
+  task :test, [ :name, :ein, :location ] => :environment do |_, args|
     if args[:name].blank? || args[:ein].blank? || args[:location].blank?
       puts "Usage: rails email_search:test['Organization Name','EIN','City, ST']"
       next
@@ -25,7 +25,7 @@ namespace :email_search do
 
     # Initialize and run the service
     email_search_service = EmailSearchService.new(organization)
-    
+
     puts "\nStep 1: Calling EmailSearchService#find_email_with_details..."
     details = email_search_service.find_email_with_details
 
@@ -40,7 +40,7 @@ namespace :email_search do
     puts "---\n"
     puts "Raw LLM Response:"
     puts details[:llm_response] || "No response from LLM."
-    
+
     puts "\n----------------------------------"
     puts "RESULT"
     puts "----------------------------------"

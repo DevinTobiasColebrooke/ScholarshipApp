@@ -1,4 +1,4 @@
-require 'csv'
+require "csv"
 
 namespace :irs do
   desc "Outputs EINs of confirmed Scholarship Funders missing detailed XML grant data to a CSV file"
@@ -23,11 +23,11 @@ namespace :irs do
 
     # Write data to CSV
     CSV.open(output_filename, "wb") do |csv|
-      csv << ["EIN", "Organization Name"] # Header Row
+      csv << [ "EIN", "Organization Name" ] # Header Row
 
       # Iterate over all organizations
       missing_orgs.each do |org|
-        csv << [org.ein, org.name]
+        csv << [ org.ein, org.name ]
       end
     end
 

@@ -1,7 +1,7 @@
-require 'csv'
-require 'nokogiri'
-require_relative 'irs_importer/xml_extractor'
-require_relative 'irs_importer/persistence_updater'
+require "csv"
+require "nokogiri"
+require_relative "irs_importer/xml_extractor"
+require_relative "irs_importer/persistence_updater"
 
 namespace :irs do
   desc "Performs targeted recursive XML import only for EINs listed in a specified CSV file."
@@ -43,7 +43,7 @@ namespace :irs do
     records_updated = 0
 
     # Use recursive glob pattern
-    Dir.glob(File.join(xml_directory, '**', '*.xml')).each do |xml_file|
+    Dir.glob(File.join(xml_directory, "**", "*.xml")).each do |xml_file|
       files_scanned += 1
 
       # Use Nokogiri to quickly extract the EIN without full Rails overhead

@@ -61,23 +61,23 @@ module EmailOutreachHelpers
 
   # --- Core Logic Helpers ---
 
-  def find_email_for_org(org)
+  def find_email_for_org(org, search_provider: :searxng)
     start_time = Time.now
-    email = EmailSearchService.new(org).find_email
+    email = EmailSearchService.new(org, search_provider: search_provider).find_email
     elapsed = (Time.now - start_time).round(2)
-    [email, elapsed]
+    [ email, elapsed ]
   end
 
   def update_outreach_contact(org:, email:)
     if email
       org.update(org_contact_email: email)
       OutreachContact.find_or_create_by(organization: org, campaign_name: CAMPAIGN_NAME) do |contact|
-        contact.status = 'ready_for_email_outreach'
+        contact.status = "ready_for_email_outreach"
         contact.contact_email = email
       end
     else
       OutreachContact.find_or_create_by(organization: org, campaign_name: CAMPAIGN_NAME) do |contact|
-        contact.status = 'needs_mailing'
+        contact.status = "needs_mailing"
       end
     end
   end

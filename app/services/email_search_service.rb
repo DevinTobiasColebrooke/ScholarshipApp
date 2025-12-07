@@ -1,11 +1,11 @@
-require 'faraday'
-require 'json'
-require 'thread'
-require 'openai' # Now used for local LLM interaction
+require "faraday"
+require "json"
+require "thread"
+require "openai" # Now used for local LLM interaction
 
 # Load the new services
-require_relative 'web_search_service'
-require_relative 'knowledge_base_service'
+require_relative "web_search_service"
+require_relative "knowledge_base_service"
 
 class EmailSearchService
   class AiSearchError < StandardError; end
@@ -73,10 +73,18 @@ class EmailSearchService
 
   # --- End Configuration ---
 
-  def initialize(organization)
+  def initialize(organization, search_provider: :searxng)
     @organization = organization
+    @search_provider_class = case search_provider
+    when :google
+                               GoogleSearchService
+    when :searxng
+                               WebSearchService
+    else
+                               raise ArgumentError, "Unknown search_provider: #{search_provider}"
+    end
+
     # Initialize OpenAI client for local LLM interaction.
-    # The API key is often "dummy" or optional for local instances.
     @llm_client = OpenAI::Client.new(access_token: LLM_API_KEY, uri_base: LLM_BASE_URL)
   end
 
@@ -89,8 +97,8 @@ class EmailSearchService
     raise DailyLimitReached, "Service temporarily unavailable due to previous errors" if self.class.daily_limit_reached?
 
     self.class.wait_for_rate_limit
-    
-    Rails.logger.info "EmailSearchService: Initiating email search for #{@organization.name} (ID: #{@organization.id})"
+
+    Rails.logger.info "EmailSearchService: Initiating email search for #{@organization.name} (ID: #{@organization.id}) using #{@search_provider_class.name}"
 
     attempts = 0
     begin
@@ -114,7 +122,14 @@ class EmailSearchService
 
   private
 
-  # ... (build_web_search_query remains the same)
+  def build_web_search_query
+    city_state = if @organization.us_address.present?
+                   parts = @organization.us_address.split("\n").last&.split(" ")
+                   " in #{parts[0..-2].join(" ")}, #{parts.last}" if parts&.length&.>= 2
+                 end
+
+    "contact email for \"#{@organization.name}\"#{city_state}"
+  end
 
   # Orchestrates web search, content fetching, and email extraction using the RAG pipeline
   def search_and_extract_email
@@ -122,17 +137,21 @@ class EmailSearchService
     Rails.logger.info "EmailSearchService: Performing advanced RAG search using query: '#{web_search_query}'"
 
     begin
-      rag_service = RagSearchService.new(web_search_query, transform: true)
+      rag_service = RagSearchService.new(
+        web_search_query,
+        search_provider_class: @search_provider_class,
+        transform: true
+      )
       context, _ = rag_service.search_and_synthesize
 
       if context.blank?
         Rails.logger.info "EmailSearchService: RAG service returned no context. Cannot extract email."
         return { email: nil, web_search_query: web_search_query, context: nil, llm_response: "RAG service returned no context." }
       end
-      
+
       Rails.logger.debug "EmailSearchService: Sending dense context to LLM for email extraction."
       found_email, llm_response = extract_email_with_llm(context)
-      
+
       { email: found_email, web_search_query: web_search_query, context: context, llm_response: llm_response }
 
     rescue RagSearchService::RagSearchError => e
@@ -158,7 +177,7 @@ class EmailSearchService
 
   # Helper method to extract email using the local LLM
   def extract_email_with_llm(text_to_analyze)
-    state = @organization.us_address.present? ? @organization.us_address.split(',').map(&:strip).find { |part| part.match?(/\b[A-Z]{2}\b/) } : nil
+    state = @organization.us_address.present? ? @organization.us_address.split(",").map(&:strip).find { |part| part.match?(/\b[A-Z]{2}\b/) } : nil
     system_prompt = <<-PROMPT
 You are an expert email address extractor. Your task is to find the contact email address for a specific organization from the provided text.
 
@@ -174,7 +193,7 @@ If you cannot find an email address specifically for this organization, return e
 Do not return emails for other organizations, even if they are mentioned in the text.
 Do not include any other text or explanation in your response.
 PROMPT
-    
+
     messages = [
       { role: "system", content: system_prompt.strip },
       { role: "user", content: text_to_analyze }
@@ -186,7 +205,7 @@ PROMPT
 
     if email_response_text.blank?
       Rails.logger.warn "EmailSearchService: LLM returned no text content for email extraction."
-      return [nil, nil]
+      return [ nil, nil ]
     end
 
     Rails.logger.debug "EmailSearchService: Raw LLM email extraction response: #{email_response_text[0..200]}"
@@ -195,8 +214,8 @@ PROMPT
     cleaned_email_response = email_response_text.downcase
 
     # If LLM explicitly says "not_found" or similar
-    if cleaned_email_response == 'not_found' || cleaned_email_response.include?('not found') || cleaned_email_response.include?('cannot find')
-      return [nil, email_response_text]
+    if cleaned_email_response == "not_found" || cleaned_email_response.include?("not found") || cleaned_email_response.include?("cannot find")
+      return [ nil, email_response_text ]
     end
 
     # Attempt to extract a valid email address using regex from the LLM's response
@@ -204,15 +223,15 @@ PROMPT
     if email_match
       found_email = email_match[0]
       Rails.logger.info "EmailSearchService: Successfully extracted email '#{found_email}' for #{@organization.name}"
-      return [found_email, email_response_text]
+      [ found_email, email_response_text ]
     else
-      Rails.logger.warn "EmailSearchService: LLM response did not contain a valid email format after extraction attempt for #{@organization.name}: '#{email_response_text[0..100]}'".
-      return [nil, email_response_text]
+      Rails.logger.warn "EmailSearchService: LLM response did not contain a valid email format after extraction attempt for #{@organization.name}: '#{email_response_text[0..100]}'"
+      [ nil, email_response_text ]
     end
   rescue Faraday::ConnectionFailed => e
     raise AiSearchError, "Connection to local LLM server failed: #{e.message}. Ensure LLM server is running at #{LLM_BASE_URL}"
   rescue => e
     Rails.logger.error "EmailSearchService: Error during email extraction by LLM: #{e.class} - #{e.message}"
-    [nil, nil]
+    [ nil, nil ]
   end
 end

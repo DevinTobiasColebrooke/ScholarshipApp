@@ -1,5 +1,5 @@
-require_relative 'xml_data_transformer'
-require_relative 'persistence_updater'
+require_relative "xml_data_transformer"
+require_relative "persistence_updater"
 
 module IrsImporter
 class XmlExtractor
@@ -131,29 +131,29 @@ class XmlExtractor
     update_fields[:website_address_txt] ||= extract_text("//WebsiteAddressTxt")
     update_fields[:primary_exempt_purpose_txt] ||= extract_text("//PrimaryExemptPurposeTxt")
 
-    application_info_node = extract_node('//ApplicationSubmissionInfoGrp', @doc)
+    application_info_node = extract_node("//ApplicationSubmissionInfoGrp", @doc)
     if application_info_node
-      update_fields[:restrictions_on_awards_txt] = extract_text('RestrictionsOnAwardsTxt', application_info_node)
-      update_fields[:submission_deadlines_txt] = extract_text('SubmissionDeadlinesTxt', application_info_node)
-      update_fields[:application_materials_txt] = extract_text('FormAndInfoAndMaterialsTxt', application_info_node)
-      application_phone = extract_text('RecipientPhoneNum', application_info_node)
+      update_fields[:restrictions_on_awards_txt] = extract_text("RestrictionsOnAwardsTxt", application_info_node)
+      update_fields[:submission_deadlines_txt] = extract_text("SubmissionDeadlinesTxt", application_info_node)
+      update_fields[:application_materials_txt] = extract_text("FormAndInfoAndMaterialsTxt", application_info_node)
+      application_phone = extract_text("RecipientPhoneNum", application_info_node)
       update_fields[:phone_num] ||= application_phone if application_phone.present?
 
       # NEW: Email Address
-      update_fields[:recipient_email_address_txt] = extract_text('RecipientEmailAddressTxt', application_info_node)
+      update_fields[:recipient_email_address_txt] = extract_text("RecipientEmailAddressTxt", application_info_node)
     end
 
     # --- Financial & Qualification (Adding Specific Totals) ---
 
     update_fields[:cy_grants_and_similar_paid_amt] = extract_decimal("//ContriPaidRevAndExpnssAmt")
-    update_fields[:total_grants_paid_xml_amt] = extract_decimal('//TotalGrantOrContriPdDurYrAmt')
+    update_fields[:total_grants_paid_xml_amt] = extract_decimal("//TotalGrantOrContriPdDurYrAmt")
     update_fields[:cy_total_revenue_amt] ||= extract_decimal("//TotalRevAndExpnssAmt")
 
-    total_assets = extract_decimal('//TotalAssetsEOYAmt')
-    total_liabilities = extract_decimal('//TotalLiabilitiesEOYAmt')
+    total_assets = extract_decimal("//TotalAssetsEOYAmt")
+    total_liabilities = extract_decimal("//TotalLiabilitiesEOYAmt")
 
     # Fallback for Total Assets: Check 990T field name (BookValueAssetsEOYAmt)
-    total_assets ||= extract_decimal('//BookValueAssetsEOYAmt')
+    total_assets ||= extract_decimal("//BookValueAssetsEOYAmt")
 
     update_fields[:total_assets_eoy_amt] = total_assets
     update_fields[:total_liabilities_eoy_amt] = total_liabilities
@@ -163,16 +163,16 @@ class XmlExtractor
     update_fields[:grants_to_individuals_ind] = extract_text("//GrantsToIndividualsInd")
     update_fields[:only_contri_preselected_ind] = extract_text("//OnlyContriToPreselectedInd")
 
-    future_grant_group = extract_node('//GrantOrContriApprvForFutGrp', @doc)
+    future_grant_group = extract_node("//GrantOrContriApprvForFutGrp", @doc)
     if future_grant_group
-      update_fields[:approved_future_grants_xml_amt] = extract_decimal('Amt', future_grant_group)
-      update_fields[:total_grant_or_contri_apprv_fut_amt] = extract_decimal('TotalGrantOrContriApprvFutAmt')
-      update_fields[:approved_future_grants_purpose] = extract_text('GrantOrContributionPurposeTxt', future_grant_group)
-      update_fields[:approved_future_grants_recipient_nm] = extract_text('RecipientBusinessName/BusinessNameLine1Txt', future_grant_group) || extract_text('RecipientPersonNm', future_grant_group)
+      update_fields[:approved_future_grants_xml_amt] = extract_decimal("Amt", future_grant_group)
+      update_fields[:total_grant_or_contri_apprv_fut_amt] = extract_decimal("TotalGrantOrContriApprvFutAmt")
+      update_fields[:approved_future_grants_purpose] = extract_text("GrantOrContributionPurposeTxt", future_grant_group)
+      update_fields[:approved_future_grants_recipient_nm] = extract_text("RecipientBusinessName/BusinessNameLine1Txt", future_grant_group) || extract_text("RecipientPersonNm", future_grant_group)
     end
 
     # NEW: Charitable Contributions Deduction (Consolidated from 990-T specific fields)
-    contribution_amt = extract_decimal('//IRS990T/CharitableContributionsDedAmt')
+    contribution_amt = extract_decimal("//IRS990T/CharitableContributionsDedAmt")
     update_fields[:charitable_contribution_ded_amt] = contribution_amt
 
     update_fields.compact!
@@ -204,16 +204,16 @@ class XmlExtractor
 
   def extract_grants_paid_data
     grant_data = []
-    grants_xpath = '//IRS990PF/SupplementaryInformationGrp/GrantOrContributionPdDurYrGrp'
+    grants_xpath = "//IRS990PF/SupplementaryInformationGrp/GrantOrContributionPdDurYrGrp"
 
     extract_nodes(grants_xpath).each do |grant_node|
-      purpose = extract_text('GrantOrContributionPurposeTxt', grant_node)
-      amount = extract_decimal('Amt', grant_node)
+      purpose = extract_text("GrantOrContributionPurposeTxt", grant_node)
+      amount = extract_decimal("Amt", grant_node)
 
-      recipient_business_name = extract_text('RecipientBusinessName/BusinessNameLine1Txt', grant_node)
-      recipient_business_name ||= extract_text('RecipientBusinessName', grant_node)
+      recipient_business_name = extract_text("RecipientBusinessName/BusinessNameLine1Txt", grant_node)
+      recipient_business_name ||= extract_text("RecipientBusinessName", grant_node)
 
-      recipient_person_nm = extract_text('RecipientPersonNm', grant_node)
+      recipient_person_nm = extract_text("RecipientPersonNm", grant_node)
 
       next unless purpose.present? && amount.present? && (recipient_business_name.present? || recipient_person_nm.present?)
 
@@ -223,9 +223,9 @@ class XmlExtractor
         recipient_person_nm: recipient_person_nm,
         recipient_business_name: recipient_business_name,
         recipient_us_address: extract_us_address(grant_node),
-        recipient_foreign_address: extract_text('RecipientForeignAddress', grant_node),
-        recipient_relationship_txt: extract_text('RecipientRelationshipTxt', grant_node),
-        recipient_foundation_status_txt: extract_text('RecipientFoundationStatusTxt', grant_node),
+        recipient_foreign_address: extract_text("RecipientForeignAddress", grant_node),
+        recipient_relationship_txt: extract_text("RecipientRelationshipTxt", grant_node),
+        recipient_foundation_status_txt: extract_text("RecipientFoundationStatusTxt", grant_node),
         created_at: Time.current,
         updated_at: Time.current
       }

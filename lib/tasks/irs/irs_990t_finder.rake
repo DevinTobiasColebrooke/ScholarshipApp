@@ -1,4 +1,4 @@
-require_relative 'irs_importer/xml_extractor'
+require_relative "irs_importer/xml_extractor"
 
 namespace :irs do
   desc "Lists all 990-T XML files and their EINs for manual inspection"

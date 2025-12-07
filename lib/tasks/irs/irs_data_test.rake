@@ -1,5 +1,5 @@
-require_relative 'irs_importer/xml_extractor'
-require 'pp'
+require_relative "irs_importer/xml_extractor"
+require "pp"
 
 namespace :irs do
   desc "Extracts and displays data from a single XML file (Usage: XML_FILE=/path/to/file.xml rails irs:test_xml_file)"
@@ -15,7 +15,7 @@ namespace :irs do
     puts "--- Testing extraction of #{File.basename(file_path)} ---"
 
     # Ensure BigDecimal is included, though Rails environment usually loads it.
-    require 'bigdecimal'
+    require "bigdecimal"
 
     extractor = IrsImporter::XmlExtractor.new(file_path)
 

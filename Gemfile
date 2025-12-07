@@ -8,7 +8,7 @@ gem "propshaft"
 gem "pg", "~> 1.1"
 gem "pgvector", "~> 0.2.2"
 gem "neighbor"
-gem 'pg_search', '~> 2.3', '>= 2.3.6'
+gem "pg_search", "~> 2.3", ">= 2.3.6"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
@@ -30,19 +30,19 @@ gem "parallel"
 # gem "bcrypt", "~> 3.1.7"
 
 # Nokogiri for XML parsing
-gem 'nokogiri', '~> 1.18', '>= 1.18.10'
+gem "nokogiri", "~> 1.18", ">= 1.18.10"
 
 # Ferrum for browser automation
-gem 'ferrum'
+gem "ferrum"
 
 # Faraday for HTTP requests
-gem 'faraday', '~> 2.14'
+gem "faraday", "~> 2.14"
 
 # Ruby gem for OpenAI API (and compatible local LLMs)
-gem 'ruby-openai', '~> 6.0'
+gem "ruby-openai", "~> 6.0"
 
 # Agnostic pagination in plain ruby
-gem 'pagy', '~> 43.0'
+gem "pagy", "~> 43.0"
 
 
 
@@ -64,7 +64,7 @@ gem "kamal", require: false
 gem "thruster", require: false
 
 # csv gem for CSV parsing
-gem 'csv', '~> 3.0'
+gem "csv", "~> 3.0"
 
 # Image processing library
 

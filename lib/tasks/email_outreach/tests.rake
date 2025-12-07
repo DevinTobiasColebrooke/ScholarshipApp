@@ -1,4 +1,4 @@
-require_relative 'helpers'
+require_relative "helpers"
 
 namespace :email_outreach do
   extend EmailOutreachHelpers
@@ -34,7 +34,7 @@ namespace :email_outreach do
   task test_llm_connection: :environment do
     print_header("TESTING LOCAL LLM SERVER CONNECTION")
     # We need to require the service to access its constants
-    require_relative('../../app/services/email_search_service')
+    require_relative("../../app/services/email_search_service")
     service = EmailSearchService
 
     puts "Attempting to connect to LLM server at: #{service::LLM_BASE_URL}"
@@ -44,7 +44,7 @@ namespace :email_outreach do
       llm_client = OpenAI::Client.new(access_token: service::LLM_API_KEY, uri_base: service::LLM_BASE_URL)
       puts "\nAttempting a simple chat completion request..."
       response = llm_client.chat(
-        parameters: { model: service::LLM_MODEL_NAME, messages: [{ role: "user", content: "Hello" }], max_tokens: 10 }
+        parameters: { model: service::LLM_MODEL_NAME, messages: [ { role: "user", content: "Hello" } ], max_tokens: 10 }
       )
 
       if (content = response.dig("choices", 0, "message", "content")&.strip).present?
@@ -66,7 +66,7 @@ namespace :email_outreach do
   end
 
   desc "Test email search with multiple organizations to see success rate"
-  task :test_multiple, [:count] => :environment do |_task, args|
+  task :test_multiple, [ :count ] => :environment do |_task, args|
     count = args[:count]&.to_i || 5
     print_header("TESTING EMAIL SEARCH WITH #{count} ORGANIZATIONS")
     EmailSearchService.reset_daily_limit_flag

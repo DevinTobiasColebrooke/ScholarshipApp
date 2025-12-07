@@ -1,4 +1,4 @@
-require_relative 'irs_importer/xml_extractor'
+require_relative "irs_importer/xml_extractor"
 
 namespace :irs do
   desc "Backfills 'only_contri_preselected_ind' field for organizations with 990/990PF filings."
@@ -50,7 +50,7 @@ namespace :irs do
         Rails.logger.info "Updated EIN #{organization.ein}: only_contri_preselected_ind set to '#{preselected_ind || 'nil'}'"
       end
 
-      print '.' if update_count % 100 == 0
+      print "." if update_count % 100 == 0
     end
 
     puts "\n--- Backfill Complete. ---"

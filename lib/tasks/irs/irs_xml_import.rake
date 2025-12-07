@@ -1,4 +1,4 @@
-require_relative 'irs_importer/xml_extractor'
+require_relative "irs_importer/xml_extractor"
 
 namespace :irs do
   desc "Imports XML Data for Missions, Website, and Grants (Only FULL Forms: 990/990-EZ/990-PF/990-O) - Recursively searches subdirectories."
@@ -13,8 +13,7 @@ namespace :irs do
 
     # *** IMPORTANT CHANGE: Use recursive glob pattern ***
     # This finds all .xml files in all subdirectories of xml_directory
-    Dir.glob(File.join(xml_directory, '**', '*.xml')).each do |xml_file|
-
+    Dir.glob(File.join(xml_directory, "**", "*.xml")).each do |xml_file|
       # Skip if the path points to a file that is not directly readable or is a symbolic link target, if necessary
       next unless File.file?(xml_file)
 
@@ -28,7 +27,7 @@ namespace :irs do
         next
       end
 
-      print '.' if file_count % 100 == 0
+      print "." if file_count % 100 == 0
     end
     puts "\n--- FULL XML Imports Complete. Processed #{file_count} files. ---"
   end
