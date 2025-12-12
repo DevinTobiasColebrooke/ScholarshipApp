@@ -715,12 +715,12 @@ module OrganizationsHelper
       classes = "bg-purple-100 text-purple-800 font-medium"
 
     # Priority 2: CSV data indicates grants to individuals (strong indicator)
-    elsif organization.grnt_indiv_cd == 'Y'
+    elsif organization.grnt_indiv_cd == "Y"
       status = "Individual Grants (CSV)"
       classes = "bg-green-100 text-green-800 font-medium"
 
     # Priority 3: XML flag indicates grants to individuals
-    elsif organization.grants_to_individuals_ind == 'X'
+    elsif organization.grants_to_individuals_ind == "X"
       status = "Individual Grants (XML Flag)"
       classes = "bg-blue-100 text-blue-800 font-medium"
 

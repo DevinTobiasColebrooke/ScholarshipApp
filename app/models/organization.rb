@@ -19,7 +19,7 @@ class Organization < ApplicationRecord
     ],
     # Search associated Grant fields
     associated_against: {
-      grants: [:purpose_text]
+      grants: [ :purpose_text ]
     },
     # Rely only on tsearch for speed
     using: {
@@ -47,7 +47,7 @@ class Organization < ApplicationRecord
 
   scope :filter_by_ntee, ->(code) { where("ntee_code LIKE ?", "#{code}%") }
 
-  scope :scholarship_ntee_codes, -> { filter_by_ntee('B82').or(filter_by_ntee('040')) }
+  scope :scholarship_ntee_codes, -> { filter_by_ntee("B82").or(filter_by_ntee("040")) }
 
   scope :potential_scholarship_grantor, -> {
     private_foundation.scholarship_ntee_codes.active_grantor_indicator
@@ -60,11 +60,11 @@ class Organization < ApplicationRecord
   }
 
   scope :accepts_unsolicited_requests, -> {
-    where.not(only_contri_preselected_ind: 'X')
+    where.not(only_contri_preselected_ind: "X")
   }
 
   scope :only_restricted_grants, -> {
-    where(only_contri_preselected_ind: 'X')
+    where(only_contri_preselected_ind: "X")
   }
 
   scope :search_mission_text, ->(query) {
@@ -84,12 +84,12 @@ class Organization < ApplicationRecord
 
   scope :exclude_demographic_keywords, -> {
     exclusion_keywords = [
-      'veteran', 'military', 'black', 'african american', 'hispanic', 'latino',
-      'asian', 'middle eastern', 'native american', 'african', 'caribbean',
-      'men', 'male', 'boy'
+      "veteran", "military", "black", "african american", "hispanic", "latino",
+      "asian", "middle eastern", "native american", "african", "caribbean",
+      "men", "male", "boy", "polynesian", "hawaiian", "pacific islander"
     ]
 
-    where_clause = exclusion_keywords.map { |k| "restrictions_on_awards_txt ILIKE '%#{k}%'" }.join(' OR ')
+    where_clause = exclusion_keywords.map { |k| "restrictions_on_awards_txt ILIKE '%#{k}%'" }.join(" OR ")
     where.not(where_clause)
   }
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_23_225935) do
+ActiveRecord::Schema[8.0].define(version: 2025_12_05_025340) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -69,7 +69,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_225935) do
     t.string "only_contri_preselected_ind", comment: "Part XIV Line 2, X if foundation only makes contributions to preselected charities."
     t.string "contributing_manager_nm"
     t.string "shareholder_manager_nm"
-    t.string "recipient_email_address_txt"
+    t.string "org_contact_email"
     t.decimal "total_grant_or_contri_apprv_fut_amt", precision: 18, scale: 2
     t.decimal "charitable_contribution_ded_amt", precision: 15, scale: 2
     t.boolean "is_scholarship_funder", default: false
@@ -90,7 +90,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_225935) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "campaign_name"
-    t.index ["organization_id"], name: "index_outreach_contacts_on_organization_id", unique: true
+    t.index ["organization_id", "campaign_name"], name: "index_outreach_contacts_on_org_id_and_campaign_name", unique: true
   end
 
   create_table "outreach_logs", force: :cascade do |t|

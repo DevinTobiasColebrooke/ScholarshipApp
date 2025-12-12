@@ -1,4 +1,4 @@
-require_relative 'irs_importer/xml_extractor'
+require_relative "irs_importer/xml_extractor"
 
 namespace :irs do
   desc "Backfills new supplementary info fields from all existing XML files (Part XIV/XV)"
@@ -30,7 +30,7 @@ namespace :irs do
           # Update the organization, skipping the grant/program service delete/insert
           organization.update!(extracted_fields)
           file_count += 1
-          print '.' if file_count % 100 == 0
+          print "." if file_count % 100 == 0
         end
       end
     end

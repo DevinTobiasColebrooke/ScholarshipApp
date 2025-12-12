@@ -74,3 +74,11 @@ rails test
 ## Additional Documentation
 
 Detailed documentation for agent flow, local LLM implementation, email outreach planning, and Google Search grounding can be found in the `docs/` directory.
+
+## Google Gemini Integration
+
+The application uses the Google Gemini API to populate email addresses for organizations.
+
+*   **`GoogleGeminiService`:** The `app/services/google_gemini_service.rb` handles communication with the Google Gemini API.
+*   **Rake Task:** A rake task `populate_emails_with_gemini` in `lib/tasks/populate_emails_with_gemini.rake` uses the `GoogleGeminiService` to find and update missing email addresses for organizations.
+*   **Documentation:** Further details on the implementation can be found in `docs/implement_google_search/how_google_api_was_implemented.md`.

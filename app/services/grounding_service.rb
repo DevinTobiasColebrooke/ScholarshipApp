@@ -1,5 +1,5 @@
-require 'openai'
-require 'json'
+require "openai"
+require "json"
 
 class GroundingService
   # Using the same LLM configuration as the EmailSearchService
@@ -65,9 +65,9 @@ PROMPT
           response_format: { type: "json_object" } # Instruct the model to return JSON
         }
       )
-      
+
       json_response_text = response.dig("choices", 0, "message", "content")&.strip
-      
+
       if json_response_text
         JSON.parse(json_response_text)
       else
@@ -111,9 +111,9 @@ PROMPT
           response_format: { type: "json_object" }
         }
       )
-      
+
       json_response_text = response.dig("choices", 0, "message", "content")&.strip
-      
+
       if json_response_text
         JSON.parse(json_response_text)["search_query"]
       else

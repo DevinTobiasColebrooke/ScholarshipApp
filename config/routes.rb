@@ -3,15 +3,15 @@ Rails.application.routes.draw do
 
   root "organizations#index"
 
-  resources :organizations, only: [:index, :show] do
+  resources :organizations, only: [ :index, :show ] do
     get "search", on: :collection
     get "potential_scholarship_grantors", on: :collection
     get "grants_and_programs", on: :member
   end
 
   # Outreach
-  resources :outreach_planner, only: [:index, :create, :show], controller: 'outreach_planner'
-  resources :outreach_contacts, only: [:index, :show, :create] do
+  resources :outreach_planner, only: [ :index, :create, :show ], controller: "outreach_planner"
+  resources :outreach_contacts, only: [ :index, :show, :create ] do
     post :update_status, on: :member
   end
 

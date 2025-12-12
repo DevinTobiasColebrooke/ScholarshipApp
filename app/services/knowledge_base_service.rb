@@ -1,18 +1,18 @@
-require 'net/http'
-require 'uri'
-require 'json'
+require "net/http"
+require "uri"
+require "json"
 
 class KnowledgeBaseService
   # Configuration for the Embedding Model Server
   # TODO: Move these configurations to Rails credentials or a dedicated initializer.
-  EMBEDDING_SERVER_URL = URI('http://10.0.0.202:8081/embedding').freeze
+  EMBEDDING_SERVER_URL = URI("http://10.0.0.202:8081/embedding").freeze
   EMBEDDING_DIMENSION = 768 # Confirmed by user's existing schema
   MAX_CHARS_FOR_EMBEDDING = 2000 # Matches original script's truncation limit
 
   def self.get_embedding(text)
     http = Net::HTTP.new(EMBEDDING_SERVER_URL.host, EMBEDDING_SERVER_URL.port)
     request = Net::HTTP::Post.new(EMBEDDING_SERVER_URL)
-    request['Content-Type'] = 'application/json'
+    request["Content-Type"] = "application/json"
     request.body = { input: text }.to_json
 
     response = http.request(request)
@@ -27,10 +27,10 @@ class KnowledgeBaseService
     # The llama-server returns an array of objects. We need to get the first one.
     if parsed_response.is_a?(Array) && !parsed_response.empty?
       first_result = parsed_response.first
-      if first_result.is_a?(Hash) && first_result['embedding']
+      if first_result.is_a?(Hash) && first_result["embedding"]
         # The server returns a nested array for the embedding, e.g., [[0.1, 0.2, ...]]
         # pgvector expects a flat array, so we take the first element.
-        return first_result['embedding'].first
+        return first_result["embedding"].first
       end
     end
 
@@ -48,7 +48,7 @@ class KnowledgeBaseService
     truncated_content_for_embedding = content.slice(0, MAX_CHARS_FOR_EMBEDDING)
 
     embedding = get_embedding(truncated_content_for_embedding)
-    
+
     unless embedding
       Rails.logger.warn "KnowledgeBaseService: Failed to get embedding for document from #{url}. Skipping storage."
       return nil

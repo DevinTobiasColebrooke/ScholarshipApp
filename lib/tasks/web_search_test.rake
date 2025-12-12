@@ -1,6 +1,6 @@
 namespace :web_search do
   desc "Test the full web search, fetch, and embedding pipeline with a real query"
-  task :test, [:query] => :environment do |_, args|
+  task :test, [ :query ] => :environment do |_, args|
     if args[:query].blank?
       puts "Usage: rails web_search:test[search query]"
       next
@@ -42,7 +42,7 @@ namespace :web_search do
     puts "Step 3: Generating embedding for the content..."
     begin
       truncated_content = fetched_content.truncate(8000)
-      embedding_vector = EmbeddingService.call(truncated_content, task: 'search_document')
+      embedding_vector = EmbeddingService.call(truncated_content, task: "search_document")
       puts "  - Embedding generated successfully."
     rescue EmbeddingService::EmbeddingError => e
       puts "Error generating embedding: #{e.message}"

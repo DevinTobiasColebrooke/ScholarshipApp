@@ -33,7 +33,7 @@ class OrganizationSearchService
   private
 
   def apply_semantic_search(organizations)
-    embedding = EmbeddingService.call(params[:semantic_query], task: 'search_query')
+    embedding = EmbeddingService.call(params[:semantic_query], task: "search_query")
     organizations.nearest_neighbors(:embedding, embedding, distance: "euclidean").first(100)
   end
 

@@ -1,4 +1,4 @@
-require_relative 'irs_importer/xml_extractor'
+require_relative "irs_importer/xml_extractor"
 
 namespace :irs do
   desc "Imports or updates Organization records from 990T XML files (Header + UBI Deductions)"

@@ -1,4 +1,4 @@
-require 'parallel'
+require "parallel"
 
 namespace :embedding do
   desc "Generate embeddings for all organizations (in parallel and resumable)"
@@ -20,7 +20,7 @@ namespace :embedding do
         if embeddable_text.present?
           begin
             # puts "Generating embedding for organization ##{org.id}..." # (Optional: can be noisy)
-            embedding = EmbeddingService.call(embeddable_text, task: 'search_document')
+            embedding = EmbeddingService.call(embeddable_text, task: "search_document")
             org.update_column(:embedding, embedding)
 
           rescue EmbeddingService::EmbeddingError => e
@@ -57,7 +57,7 @@ namespace :embedding do
         if embeddable_text.present?
           begin
             # puts "Generating embedding for organization ##{org.id}..." # (Optional: can be noisy)
-            embedding = EmbeddingService.call(embeddable_text, task: 'search_document')
+            embedding = EmbeddingService.call(embeddable_text, task: "search_document")
             org.update_column(:embedding, embedding)
 
           rescue EmbeddingService::EmbeddingError => e

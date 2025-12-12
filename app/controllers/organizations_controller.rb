@@ -1,6 +1,5 @@
 # app/controllers/organizations_controller.rb
 class OrganizationsController < ApplicationController
-
   def index
     search_service = OrganizationSearchService.new(organization_search_params)
     full_scope = search_service.call
@@ -27,7 +26,7 @@ class OrganizationsController < ApplicationController
     @organization = Organization.includes(:supplemental_infos, :outreach_contact).find(params[:id])
 
     # Financial data needed for the header section:
-    @total_grants_count = (@organization.grants_to_individuals_ind == 'X' || @organization.grnt_indiv_cd == 'Y') ? "Potential" : "Unknown"
+    @total_grants_count = (@organization.grants_to_individuals_ind == "X" || @organization.grnt_indiv_cd == "Y") ? "Potential" : "Unknown"
   rescue ActiveRecord::RecordNotFound
     redirect_to organizations_path, alert: "Organization not found."
   end

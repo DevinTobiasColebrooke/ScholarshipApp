@@ -1,0 +1,8 @@
+# Run on the entire batch of failures
+rake "email_outreach:reverify_failures_with_gemini_pro"
+
+# Run on a small sample (e.g., 5 organizations)
+rake "email_outreach:reverify_failures_with_gemini_pro[10]"
+
+
+rake "email_outreach:reverify_failures_with_gemini_pro[X]"

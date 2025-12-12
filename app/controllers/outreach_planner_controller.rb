@@ -1,6 +1,6 @@
 class OutreachPlannerController < ApplicationController
   PROFILE_PRESETS = {
-    'profile_white_woman_26' => 'White Woman / 26'
+    "profile_white_woman_26" => "White Woman / 26"
     # Add more profiles here as they are implemented
   }.freeze
 
@@ -22,7 +22,7 @@ class OutreachPlannerController < ApplicationController
     session[:campaign_name] = campaign_name
     session[:profile_scope_name] = profile_scope_name
 
-    redirect_to outreach_planner_path(id: 'summary')
+    redirect_to outreach_planner_path(id: "summary")
   end
 
   # Step 3: Display summary and launch campaign
