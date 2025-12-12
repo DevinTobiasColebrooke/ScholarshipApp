@@ -69,16 +69,21 @@ module EmailOutreachHelpers
   end
 
   def update_outreach_contact(org:, email:)
+    contact = OutreachContact.find_or_initialize_by(organization: org, campaign_name: CAMPAIGN_NAME)
+    
     if email
+      # If an email is found, always update the organization and the contact record.
       org.update(org_contact_email: email)
-      OutreachContact.find_or_create_by(organization: org, campaign_name: CAMPAIGN_NAME) do |contact|
-        contact.status = "ready_for_email_outreach"
-        contact.contact_email = email
-      end
+      contact.status = "ready_for_email_outreach"
+      contact.contact_email = email
     else
-      OutreachContact.find_or_create_by(organization: org, campaign_name: CAMPAIGN_NAME) do |contact|
+      # If no email is found, only mark it for mailing if it's a new record.
+      # We don't want to overwrite a previously successful find with "needs_mailing".
+      if contact.new_record?
         contact.status = "needs_mailing"
       end
     end
+    
+    contact.save!
   end
 end

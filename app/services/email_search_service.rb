@@ -179,19 +179,27 @@ class EmailSearchService
   def extract_email_with_llm(text_to_analyze)
     state = @organization.us_address.present? ? @organization.us_address.split(",").map(&:strip).find { |part| part.match?(/\b[A-Z]{2}\b/) } : nil
     system_prompt = <<-PROMPT
-You are an expert email address extractor. Your task is to find the contact email address for a specific organization from the provided text.
+You are an expert email address extractor. Your sole task is to find a definitive contact email address for a specific organization from the provided text.
 
-Here is the information about the organization I am looking for:
-- Name: #{@organization.name}
+- Organization Name: #{@organization.name}
 - EIN: #{@organization.ein}
 - State: #{state || 'Not specified'}
 
-Please find the most relevant email address for this exact organization. Prioritize emails for scholarship inquiries, grant programs, or general contact.
+CRITICAL INSTRUCTIONS:
+1. Find the email address that is explicitly stated as the contact method for the organization named above.
+2. An email for an administrator, parent company, or related entity is NOT acceptable unless the text explicitly says "To contact #{@organization.name}, email...".
+3. If you find a definitive email address for the target organization, your response MUST be ONLY the email address and nothing else.
+4. If there is any doubt, or if no email is explicitly associated with the target organization, your response MUST be exactly the word: not_found
+5. DO NOT include any other text, sentences, or explanations. Do not write "Here is the email" or "I could not find an email".
 
-If you find an email that is clearly associated with this organization, return ONLY that email address.
-If you cannot find an email address specifically for this organization, return exactly: not_found.
-Do not return emails for other organizations, even if they are mentioned in the text.
-Do not include any other text or explanation in your response.
+VALID RESPONSE EXAMPLE:
+scholarships@example.org
+
+INVALID RESPONSE EXAMPLE (email belongs to an administrator, but is not explicitly designated for the target):
+I found an email: admin@parentcompany.org
+
+VALID "NOT FOUND" RESPONSE:
+not_found
 PROMPT
 
     messages = [
@@ -199,39 +207,37 @@ PROMPT
       { role: "user", content: text_to_analyze }
     ]
     response = @llm_client.chat(
-      parameters: { model: LLM_MODEL_NAME, messages: messages, temperature: 0.1 } # Low temperature for precise extraction
+      parameters: { model: LLM_MODEL_NAME, messages: messages, temperature: 0.0 } # Zero temperature for precision
     )
-    email_response_text = response.dig("choices", 0, "message", "content")&.strip
+    llm_response_text = response.dig("choices", 0, "message", "content")&.strip
 
-    if email_response_text.blank?
+    if llm_response_text.blank?
       Rails.logger.warn "EmailSearchService: LLM returned no text content for email extraction."
-      return [ nil, nil ]
+      return [ nil, "LLM returned no content." ]
     end
 
-    Rails.logger.debug "EmailSearchService: Raw LLM email extraction response: #{email_response_text[0..200]}"
+    Rails.logger.debug "EmailSearchService: Raw LLM email extraction response: #{llm_response_text[0..200]}"
 
-    # Clean and validate the LLM's response
-    cleaned_email_response = email_response_text.downcase
-
-    # If LLM explicitly says "not_found" or similar
-    if cleaned_email_response == "not_found" || cleaned_email_response.include?("not found") || cleaned_email_response.include?("cannot find")
-      return [ nil, email_response_text ]
+    # --- NEW: Zero-Tolerance Parsing Logic ---
+    # The response must be a single word/token. If it contains spaces, it's a conversational response and is invalid.
+    if llm_response_text.include?(" ") || llm_response_text.downcase == "not_found"
+      Rails.logger.info "EmailSearchService: LLM returned a conversational response or 'not_found'. No valid email extracted."
+      return [ nil, llm_response_text ]
     end
 
-    # Attempt to extract a valid email address using regex from the LLM's response
-    email_match = email_response_text.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/)
-    if email_match
-      found_email = email_match[0]
-      Rails.logger.info "EmailSearchService: Successfully extracted email '#{found_email}' for #{@organization.name}"
-      [ found_email, email_response_text ]
+    # The single token must be a valid email format.
+    if llm_response_text.match?(/\A\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b\z/)
+      found_email = llm_response_text
+      Rails.logger.info "EmailSearchService: Successfully extracted and validated email '#{found_email}' for #{@organization.name}"
+      [ found_email, llm_response_text ]
     else
-      Rails.logger.warn "EmailSearchService: LLM response did not contain a valid email format after extraction attempt for #{@organization.name}: '#{email_response_text[0..100]}'"
-      [ nil, email_response_text ]
+      Rails.logger.warn "EmailSearchService: LLM response '#{llm_response_text}' was not a valid email format."
+      [ nil, llm_response_text ]
     end
   rescue Faraday::ConnectionFailed => e
     raise AiSearchError, "Connection to local LLM server failed: #{e.message}. Ensure LLM server is running at #{LLM_BASE_URL}"
   rescue => e
     Rails.logger.error "EmailSearchService: Error during email extraction by LLM: #{e.class} - #{e.message}"
-    [ nil, nil ]
+    [ nil, e.message ]
   end
 end

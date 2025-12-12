@@ -86,7 +86,7 @@ class Organization < ApplicationRecord
     exclusion_keywords = [
       "veteran", "military", "black", "african american", "hispanic", "latino",
       "asian", "middle eastern", "native american", "african", "caribbean",
-      "men", "male", "boy"
+      "men", "male", "boy", "polynesian", "hawaiian", "pacific islander"
     ]
 
     where_clause = exclusion_keywords.map { |k| "restrictions_on_awards_txt ILIKE '%#{k}%'" }.join(" OR ")
