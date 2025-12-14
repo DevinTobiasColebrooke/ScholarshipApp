@@ -7,20 +7,20 @@ namespace :email_outreach do
     extend EmailOutreachHelpers
 
     limit = args[:limit]&.to_i unless args[:limit] == "all"
-    
+
     # Use a dedicated campaign name to track the progress of this specific re-verification task
     REVERIFY_CAMPAIGN_NAME = "White Woman/26 Profile - Gemini Pro Re-verify".freeze
 
     print_header("RE-VERIFYING FAILURES WITH GEMINI 2.5 PRO & GOOGLE SEARCH")
-    
+
     # --- TARGETING LOGIC ---
     # 1. Get IDs of all orgs in the base scope
     all_target_org_ids = target_organizations.pluck(:id)
-    
+
     # 2. Get IDs of orgs that were successfully processed in the MAIN campaign
     main_campaign_success_ids = OutreachContact.where(
       campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME,
-      status: 'ready_for_email_outreach'
+      status: "ready_for_email_outreach"
     ).pluck(:organization_id)
 
     # 3. The initial pool of failures is everyone in the scope MINUS the successes
@@ -31,13 +31,13 @@ namespace :email_outreach do
 
     # 5. The final list to process is the initial failures MINUS those already re-verified
     organizations_to_reprocess_ids = initial_failure_ids - already_reverified_ids
-    
+
     organizations_query = Organization.where(id: organizations_to_reprocess_ids).order(:id)
-    
+
     # Apply limit
     organizations_query = organizations_query.limit(limit) if limit
     organizations = organizations_query.to_a
-    
+
     if organizations.empty?
       abort("\n✓ No 'not_found' or previously errored organizations to re-verify.")
     end
@@ -49,7 +49,7 @@ namespace :email_outreach do
     # Initialize the powerful service
     service = GoogleGeminiService.new(model: "gemini-2.5-pro")
     # Gemini 2.5 Pro has a low free tier RPM (e.g., 2 RPM). We'll add a significant sleep.
-    sleep_duration = 30 
+    sleep_duration = 30
 
     puts "\nStarting in 3 seconds... (Ctrl+C to cancel)"
     sleep 3

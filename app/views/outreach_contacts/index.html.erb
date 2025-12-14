@@ -1,0 +1,64 @@
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Outreach Tracker</h1>
+    <%= link_to "← Back to Campaign Planner", outreach_planner_index_path, class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+  </div>
+
+  <%# Status Filter Tabs %>
+  <div class="mb-6 border-b border-gray-200">
+    <nav class="-mb-px flex space-x-8">
+      <%= link_to "All (#{OutreachContact.count})", 
+          outreach_contacts_path, 
+          class: "#{@status_filter.blank? ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+      
+      <% OutreachContact.statuses.keys.each do |status| %>
+        <%= link_to "#{status.humanize} (#{OutreachContact.where(status: status).count})", 
+            outreach_contacts_path(status: status), 
+            class: "#{@status_filter == status ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'} whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm" %>
+      <% end %>
+    </nav>
+  </div>
+
+  <%= turbo_frame_tag "outreach_contacts" do %>
+    <% if @outreach_contacts.any? %>
+      <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Organization
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Last Updated
+              </th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Email
+              </th>
+              <th scope="col" class="relative px-6 py-3">
+                <span class="sr-only">Actions</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <%= render partial: 'contact_row', collection: @outreach_contacts, as: :contact %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="py-6 flex justify-center">
+        <% if @pagy %>
+          <%== @pagy.series_nav(data: { turbo_frame: "outreach_contacts" }) %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-white shadow sm:rounded-lg p-8 text-center">
+        <p class="text-gray-500 text-lg">No outreach contacts found.</p>
+        <p class="text-gray-400 text-sm mt-2">Start a campaign to begin tracking outreach.</p>
+        <%= link_to "Start New Campaign", outreach_planner_index_path, class: "mt-4 inline-block text-indigo-600 hover:underline" %>
+      </div>
+    <% end %>
+  <% end %>
+</div>

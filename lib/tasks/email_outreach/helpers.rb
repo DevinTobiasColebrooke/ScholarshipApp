@@ -70,7 +70,7 @@ module EmailOutreachHelpers
 
   def update_outreach_contact(org:, email:)
     contact = OutreachContact.find_or_initialize_by(organization: org, campaign_name: CAMPAIGN_NAME)
-    
+
     if email
       # If an email is found, always update the organization and the contact record.
       org.update(org_contact_email: email)
@@ -83,7 +83,7 @@ module EmailOutreachHelpers
         contact.status = "needs_mailing"
       end
     end
-    
+
     contact.save!
   end
 end

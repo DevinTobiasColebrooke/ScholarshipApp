@@ -69,10 +69,10 @@ class WebSearchService
       Rails.logger.debug "WebSearchService: Readability content was too short. Falling back to full body text extraction for #{url}"
       doc = Nokogiri::HTML(html)
       # Remove script and style tags to avoid including code in the text
-      doc.search('script', 'style').remove
+      doc.search("script", "style").remove
       text = doc.text.to_s.gsub(/(\n\s*){3,}/, "\n\n").strip
     end
-    
+
     text
   rescue Ferrum::Error => e
     Rails.logger.error "WebSearchService: Ferrum error fetching #{url}: #{e.message}"

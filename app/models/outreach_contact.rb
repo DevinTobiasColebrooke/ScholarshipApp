@@ -3,12 +3,12 @@ class OutreachContact < ApplicationRecord
   has_many :outreach_logs, dependent: :destroy
 
   enum :status, {
-    ready_for_email_outreach: "ready_for_email_outreach", # New: Email found, ready for initial outreach
-    needs_mailing: "needs_mailing",                       # New: Email not found, needs physical mail
-    needs_response: "needs_response",                     # Blue: AI read email, needs user intervention to respond
-    pending: "pending",                                   # Yellow: Email sent, waiting for reply
-    accepted: "accepted",                                 # Green: Accepted (positive response)
-    rejected: "rejected"                                  # Red: Denied (negative response)
+    ready_for_email_outreach: "ready_for_email_outreach", # Email found, ready for bulk sending
+    needs_mailing: "needs_mailing",                       # Email not found, needs physical mail
+    pending: "pending",                                   # Email sent, waiting for reply
+    needs_response: "needs_response",                     # Response received, needs user action
+    accepted: "accepted",                                 # Positive response
+    rejected: "rejected"                                  # Negative response
   }
 
   validates :status, inclusion: { in: statuses.keys }
@@ -16,16 +16,6 @@ class OutreachContact < ApplicationRecord
   # Automatically retrieve the best available email from the organization record
   def inferred_contact_email
     organization.org_contact_email.presence
-  end
-
-  # Triggers the AI Draft Job
-  def draft_initial_email(profile_name)
-    AiEmailDraftingJob.perform_later(self.id, profile_name)
-
-    self.outreach_logs.create(
-      log_type: "ai_draft_requested",
-      details: "Requested AI draft for profile: #{profile_name}"
-    )
   end
 
   # Helper for view colors

@@ -31,7 +31,7 @@ module CombinedSearchHelper
       chunk_data = embeddable_chunks[top_chunk_data[:index]]
       context += "Source URL: #{chunk_data[:source_url]}\nContent:\n#{chunk_data[:text]}\n\n---\n\n"
     end
-    
+
     context
   end
 
@@ -46,11 +46,11 @@ module CombinedSearchHelper
     doc = Nokogiri::HTML(html)
 
     # Remove script and style tags to avoid including code in the text
-    doc.search('script', 'style').remove
+    doc.search("script", "style").remove
 
     # Extract all text from the body and clean it up.
     text = doc.text.to_s.gsub(/(\n\s*){3,}/, "\n\n").strip
-    
+
     text
   rescue Ferrum::Error => e
     Rails.logger.error "WebSearchService (self-contained): Ferrum error fetching #{url}: #{e.message}"
@@ -114,10 +114,10 @@ namespace :email_outreach do
     extend CombinedSearchHelper
 
     limit = args[:limit]&.to_i unless args[:limit] == "all"
-    reprocess = args[:reprocess].to_s == 'true'
+    reprocess = args[:reprocess].to_s == "true"
 
     print_header("COMBINED EMAIL SEARCH (Google + SearXNG) FOR '#{EmailOutreachHelpers::CAMPAIGN_NAME}' CAMPAIGN")
-    
+
     if reprocess
       puts "\n-- REPROCESS MODE ENABLED --"
       puts "Deleting all existing outreach contacts for this campaign to start from the beginning..."
@@ -132,7 +132,7 @@ namespace :email_outreach do
     end
 
     EmailSearchService.reset_daily_limit_flag
-    
+
     # Apply limit after determining the base query
     organizations_query = organizations_query.limit(limit) if limit
 
@@ -177,10 +177,10 @@ namespace :email_outreach do
               # 2. Search both providers
               google_urls = GoogleSearchService.search(query)&.dig("results")&.map { |r| r["url"] } || []
               searxng_urls = WebSearchService.search(query)&.dig("results")&.map { |r| r["url"] } || []
-              
+
               # 3. Combine and de-duplicate URLs
               combined_urls = (google_urls + searxng_urls).uniq
-              
+
               if combined_urls.empty?
                 raise "No search results found from either Google or SearXNG."
               end
@@ -239,15 +239,15 @@ namespace :email_outreach do
     puts "\nFinding organizations marked as 'needs_mailing' to retry..."
     not_found_org_ids = OutreachContact.where(
       campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME,
-      status: 'needs_mailing'
+      status: "needs_mailing"
     ).pluck(:organization_id)
-    
+
     organizations_query = Organization.where(id: not_found_org_ids).order(:id)
-    
+
     # Apply limit
     organizations_query = organizations_query.limit(limit) if limit
     organizations = organizations_query.to_a
-    
+
     if organizations.empty?
       abort("\n✓ No organizations found with 'needs_mailing' status to retry.")
     end
@@ -316,4 +316,3 @@ namespace :email_outreach do
     puts "  ✗ Errors: #{stats[:errors]}"
   end
 end
-

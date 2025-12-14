@@ -1,33 +1,125 @@
 require_relative "helpers"
 
 namespace :email_outreach do
-  extend EmailOutreachHelpers
+  desc "Verify Gmail credentials are configured"
+  task check_credentials: :environment do
+    puts "\n" + "="*80
+    puts "GMAIL CREDENTIALS CHECK"
+    puts "="*80
 
-  desc "Test email search with a single organization"
-  task test_search: :environment do
-    setup_verbose_logger
-    print_header("TESTING EMAIL SEARCH SERVICE")
-    EmailSearchService.reset_daily_limit_flag
+    username = Rails.application.credentials.dig(:gmail, :username)
+    password = Rails.application.credentials.dig(:gmail, :app_password)
 
-    org = target_organizations.first
-    abort("ERROR: No organizations found matching the profile.") unless org
+    puts "\nChecking credentials..."
 
-    puts "\nTest Organization: #{org.name} (EIN: #{org.ein})"
-    puts "  Website: #{org.website_address_txt || 'Not in database - AI will search'}"
-    puts "  Contributing Manager: #{org.contributing_manager_nm}" if org.contributing_manager_nm.present?
+    if username.blank?
+      puts "  ✗ FAILED: gmail.username not found in credentials"
+      puts "  Run: EDITOR='code --wait' rails credentials:edit"
+      puts "  Add:\n    gmail:\n      username: johanna@johannalucilleroberts.com\n      app_password: YOUR_APP_PASSWORD"
+      exit 1
+    else
+      puts "  ✓ Username configured: #{username}"
+    end
+
+    if password.blank?
+      puts "  ✗ FAILED: gmail.app_password not found in credentials"
+      puts "  Run: EDITOR='code --wait' rails credentials:edit"
+      puts "  Add:\n    gmail:\n      username: #{username}\n      app_password: YOUR_16_CHAR_APP_PASSWORD"
+      exit 1
+    else
+      puts "  ✓ App password configured: #{'*' * 16}"
+    end
+
+    puts "\n✓ All credentials present!"
+    puts "\nNext step: Run test email"
+    puts "  bundle exec rake email_outreach:test"
+  end
+
+  desc "Send a test email to verify Gmail integration"
+  task test: :environment do
+    puts "\n" + "="*80
+    puts "EMAIL OUTREACH TEST"
+    puts "="*80
+
+    # Use a real organization from the database for realistic testing
+    test_org = Organization.where.not(org_contact_email: nil).first
+
+    unless test_org
+      abort("ERROR: No organizations with email addresses found in database.")
+    end
+
+    puts "\nCreating test outreach contact..."
+    puts "  Organization: #{test_org.name}"
+    puts "  EIN: #{test_org.ein}"
+
+    # Create a temporary test contact
+    test_contact = OutreachContact.create!(
+      organization: test_org,
+      status: :ready_for_email_outreach,
+      contact_email: "johanna@johannalucilleroberts.com", # Send to yourself for testing
+      campaign_name: "Test Campaign - #{Time.current.strftime('%Y-%m-%d %H:%M')}"
+    )
+
+    puts "\nGenerating email..."
+    mail = OutreachMailer.scholarship_inquiry(test_contact)
+
+    puts "\n" + "-"*80
+    puts "EMAIL DETAILS:"
+    puts "-"*80
+    puts "  From: #{mail.from.first}"
+    puts "  To: #{mail.to.first}"
+    puts "  Subject: #{mail.subject}"
+    puts "-"*80
+
+    print "\nSending test email..."
 
     begin
-      email, elapsed = find_email_for_org(org)
+      mail.deliver_now
+      puts " ✓ SUCCESS"
 
-      print_header(email ? "SUCCESS! Email found in #{elapsed}s" : "NO EMAIL FOUND (in #{elapsed}s)")
-      puts "Email: #{email}" if email
-      puts "\nThe service is working correctly!"
-      puts "Current Model: #{EmailSearchService.current_model[:name]}"
-    rescue EmailSearchService::DailyLimitReached => e
-      handle_service_unavailable(e)
+      puts "\n✓ Test email sent successfully!"
+      puts "\nNext steps:"
+      puts "  1. Check johanna@johannalucilleroberts.com inbox"
+      puts "  2. Verify email formatting and content"
+      puts "  3. Check spam folder if not in inbox"
+      puts "  4. If successful, proceed with: bundle exec rake email_outreach:send_emails[20]"
+
+      # Update the test contact status to show it worked
+      test_contact.update!(
+        status: :pending,
+        last_contact_at: Time.current
+      )
+
+      test_contact.outreach_logs.create!(
+        log_type: "email_sent",
+        details: "TEST EMAIL sent to johanna@johannalucilleroberts.com\n\nSubject: #{mail.subject}"
+      )
+
+      puts "\n✓ Test contact logged (ID: #{test_contact.id})"
+      puts "  View in tracker at: http://localhost:3000/outreach_contacts"
+
     rescue => e
-      handle_generic_error(e)
+      puts " ✗ FAILED"
+      puts "\nERROR: #{e.class}"
+      puts "MESSAGE: #{e.message}"
+      puts "\nStack trace:"
+      puts e.backtrace.first(5).join("\n")
+
+      puts "\nTROUBLESHOOTING:"
+      puts "  1. Verify Gmail credentials are set: rails credentials:edit"
+      puts "  2. Check SMTP settings in config/environments/development.rb"
+      puts "  3. Ensure app password is correct (16 characters, no spaces)"
+      puts "  4. Verify 2FA is enabled on Google Workspace account"
+
+      # Clean up failed test contact
+      test_contact.destroy
+
+      exit 1
     end
+
+    puts "\n" + "="*80
+    puts "TEST COMPLETE"
+    puts "="*80 + "\n"
   end
 
   desc "Test connection to local LLM server and model availability"

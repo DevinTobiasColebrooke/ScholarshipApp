@@ -1,0 +1,40 @@
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-gray-900">Campaigns</h1>
+    <%= link_to "+ New Campaign", outreach_planner_index_path, class: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow" %>
+  </div>
+
+  <% if @campaigns.any? %>
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <% @campaigns.each do |camp| %>
+        <%= link_to outreach_contacts_path(campaign_name: camp.campaign_name), class: "block group" do %>
+          <div class="bg-white p-6 rounded-xl shadow border border-gray-200 group-hover:border-indigo-500 group-hover:shadow-md transition">
+            <h3 class="text-lg font-bold text-gray-900 group-hover:text-indigo-600 mb-2">
+              <%= camp.campaign_name.presence || "Unnamed Campaign" %>
+            </h3>
+            <p class="text-xs text-gray-500 mb-4">Last active: <%= time_ago_in_words(camp.last_activity) %> ago</p>
+
+            <div class="flex items-center space-x-4 text-sm">
+              <div class="flex flex-col">
+                <span class="font-bold text-gray-900"><%= camp.total_count %></span>
+                <span class="text-xs text-gray-500">Total</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-yellow-600"><%= camp.pending_count %></span>
+                <span class="text-xs text-gray-500">Pending</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-bold text-orange-600"><%= camp.mailing_count %></span>
+                <span class="text-xs text-gray-500">Mail</span>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+      <p class="text-gray-500 text-lg">No campaigns found.</p>
+    </div>
+  <% end %>
+</div>
