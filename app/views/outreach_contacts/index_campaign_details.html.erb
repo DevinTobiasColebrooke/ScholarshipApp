@@ -41,7 +41,9 @@
     </div>
     
     <div class="py-4 flex justify-center">
-      <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
+      <% if @pagy %>
+        <%== @pagy.series_nav(data: { turbo_frame: "outreach_contacts_list" }) %>
+      <% end %>
     </div>
   <% end %>
 </div>
