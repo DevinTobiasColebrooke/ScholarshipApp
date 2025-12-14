@@ -1,0 +1,47 @@
+<div class="max-w-7xl mx-auto py-8 px-4">
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <div class="flex items-center space-x-2 text-sm text-gray-500 mb-1">
+        <%= link_to "All Campaigns", outreach_contacts_path, class: "hover:text-gray-700 hover:underline" %>
+        <span>/</span>
+        <span>Details</span>
+      </div>
+      <h1 class="text-3xl font-bold text-gray-900"><%= @campaign_name %></h1>
+    </div>
+  </div>
+
+  <%# Filter Tabs %>
+  <div class="mb-6 border-b border-gray-200 overflow-x-auto">
+    <nav class="-mb-px flex space-x-8">
+      <%= link_to "All", outreach_contacts_path(campaign_name: @campaign_name), 
+          class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:status].blank? ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500'}" %>
+      
+      <% ["pending", "needs_response", "needs_mailing", "accepted", "rejected"].each do |status| %>
+        <%= link_to status.humanize, outreach_contacts_path(campaign_name: @campaign_name, status: status), 
+            class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:status] == status ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500'}" %>
+      <% end %>
+    </nav>
+  </div>
+
+  <%= turbo_frame_tag "outreach_contacts_list" do %>
+    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Org</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <%= render partial: 'contact_row', collection: @outreach_contacts, as: :contact %>
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="py-4 flex justify-center">
+      <%== pagy_nav(@pagy) if @pagy.pages > 1 %>
+    </div>
+  <% end %>
+</div>

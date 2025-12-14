@@ -3,7 +3,7 @@ require_relative "email_outreach/helpers"
 
 namespace :debug do
   desc "Run a detailed, step-by-step debug trace of the `email_outreach:find_emails_with_google['free']` task for a single organization"
-  task :find_emails_with_google => :environment do
+  task find_emails_with_google: :environment do
     provider = :google
 
     # 1. Setup Verbose Logging

@@ -3,7 +3,7 @@ require_relative "email_outreach/helpers"
 
 namespace :debug do
   desc "Run a detailed, step-by-step debug trace of the email search task using SearXNG for a single organization"
-  task :find_emails_with_searxng => :environment do
+  task find_emails_with_searxng: :environment do
     provider = :searxng
 
     # 1. Setup Verbose Logging

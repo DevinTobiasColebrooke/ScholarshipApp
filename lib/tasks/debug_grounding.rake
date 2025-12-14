@@ -1,11 +1,11 @@
 # lib/tasks/debug_grounding.rake
 namespace :debug do
   desc "Run a step-by-step debug trace of the grounding task using Google Search. Prompts for question interactively."
-  task :grounding_with_google => :environment do
+  task grounding_with_google: :environment do
     puts "---"
     puts "DEBUG TRACE: GROUNDING WITH GOOGLE SEARCH"
     puts "---"
-    
+
     print "Please enter your question: "
     question = STDIN.gets.chomp
     if question.blank?
@@ -72,7 +72,7 @@ namespace :debug do
   end
 
   desc "Run a step-by-step debug trace of the grounding task using SearXNG. Prompts for question interactively."
-  task :grounding_with_searxng => :environment do
+  task grounding_with_searxng: :environment do
     puts "---"
     puts "DEBUG TRACE: GROUNDING WITH SEARXNG"
     puts "---"

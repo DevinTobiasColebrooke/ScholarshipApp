@@ -1,1 +1,0 @@
-rake "email_outreach:find_emails_with_combined_search"

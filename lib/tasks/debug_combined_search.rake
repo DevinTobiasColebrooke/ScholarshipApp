@@ -31,7 +31,7 @@ namespace :debug do
         chunk_data = embeddable_chunks[top_chunk_data[:index]]
         context += "Source URL: #{chunk_data[:source_url]}\nContent:\n#{chunk_data[:text]}\n\n---\n\n"
       end
-      
+
       context
     end
 
@@ -86,13 +86,13 @@ namespace :debug do
   end
 
   desc "Run grounding with a combined search from Google and SearXNG. Prompts for question interactively."
-  task :grounding_with_combined_search => :environment do
+  task grounding_with_combined_search: :environment do
     extend CombinedSearchHelper
 
     puts "---"
     puts "DEBUG TRACE: GROUNDING WITH COMBINED SEARCH (Google + SearXNG)"
     puts "---"
-    
+
     print "Please enter your question: "
     question = STDIN.gets.chomp
     if question.blank?
@@ -162,16 +162,16 @@ namespace :debug do
     limit = args[:limit]&.to_i || 10
 
     print_header("DEBUG TRACE: COMBINED SEARCH REPROCESS (LIMIT: #{limit})")
-    
+
     puts "\n-- REPROCESS MODE ENABLED --"
     puts "Deleting all existing outreach contacts for '#{EmailOutreachHelpers::CAMPAIGN_NAME}' to start from the beginning..."
     deleted_count = OutreachContact.where(campaign_name: EmailOutreachHelpers::CAMPAIGN_NAME).delete_all
     puts "  -> Deleted #{deleted_count} records."
-    
+
     EmailSearchService.reset_daily_limit_flag
-    
+
     organizations = target_organizations.order(:id).limit(limit).to_a
-    
+
     if organizations.empty?
       abort("\nNo organizations found in the target scope to process.")
     end
@@ -179,7 +179,7 @@ namespace :debug do
     puts "\nProcessing #{organizations.count} organizations from the start of the scope..."
     puts "Starting in 3 seconds... (Ctrl+C to cancel)"
     sleep 3
-    
+
     email_service_instance = EmailSearchService.new(nil)
 
     organizations.each_with_index do |org, index|
@@ -198,7 +198,7 @@ namespace :debug do
         puts "\n[STEP 3] Searching with SearXNG..."
         searxng_urls = WebSearchService.search(query)&.dig("results")&.map { |r| r["url"] } || []
         puts "  -> Found #{searxng_urls.count} URLs from SearXNG."
-        
+
         # 3. Combine and de-duplicate URLs
         combined_urls = (google_urls + searxng_urls).uniq
         puts "\n[STEP 4] Combined and de-duplicated search results."

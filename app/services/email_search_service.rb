@@ -126,7 +126,7 @@ class EmailSearchService
     city_state = if @organization.us_address.present?
                    parts = @organization.us_address.split("\n").last&.split(" ")
                    " in #{parts[0..-2].join(" ")}, #{parts.last}" if parts&.length&.>= 2
-                 end
+    end
 
     "contact email for \"#{@organization.name}\"#{city_state}"
   end

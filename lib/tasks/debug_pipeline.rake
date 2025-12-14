@@ -4,7 +4,6 @@
 # specific steps of the RAG (Retrieval-Augmented Generation) pipeline.
 
 namespace :debug do
-
   desc "PIPELINE STEP 2: Test fetching content from a single URL. Args: [url]"
   task :pipeline_step_2_fetch_content, [ :url ] => :environment do |_, args|
     url = args[:url]
@@ -53,14 +52,14 @@ namespace :debug do
     puts "DEBUG: PIPELINE STEP 3 - RAG CONTEXT SYNTHESIS"
     puts "---"
     puts "Original question: '#{question}'"
-    
+
     begin
       puts "\n[ACTION] Running the full RagSearchService pipeline..."
       # Using SearXNG by default for this debug task
       rag_service = RagSearchService.new(question, search_provider_class: WebSearchService)
       context, sources, search_results = rag_service.search_and_synthesize
       puts "  -> RAG pipeline complete."
-      
+
       puts "\n--- [RESULT 1] TOP SEARCH RESULTS ---"
       if search_results && search_results["results"]&.any?
         search_results["results"].first(5).each_with_index do |result, index|
@@ -70,7 +69,7 @@ namespace :debug do
       else
         puts "  No web search results were returned."
       end
-      
+
       puts "\n--- [RESULT 2] SOURCES USED FOR CONTEXT ---"
       if sources.any?
         sources.each_with_index do |source_url, index|
@@ -92,5 +91,4 @@ namespace :debug do
       puts e.backtrace.first(10).join("\n")
     end
   end
-
 end
