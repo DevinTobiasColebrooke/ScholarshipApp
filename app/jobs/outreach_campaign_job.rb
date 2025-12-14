@@ -6,13 +6,23 @@ class OutreachCampaignJob < ApplicationJob
     @campaign_name = campaign_name
     @outreach_type = outreach_type
 
+    # Load limit from config (default to 50 if missing)
+    daily_limit = defined?(GMAIL_CONFIG) ? GMAIL_CONFIG[:daily_limit] : 50
+
     Rails.logger.info "Starting Campaign '#{@campaign_name}' (Type: #{@outreach_type})"
+    Rails.logger.info "⚠️ Enforcing Daily Limit: #{daily_limit} emails max per run."
 
     sent_count = 0
     mailed_count = 0
     skipped_count = 0
 
     while next_org = find_next_organization
+
+      # SAFETY CHECK: Stop if we hit the daily limit
+      if sent_count >= daily_limit
+        Rails.logger.warn "🛑 DAILY LIMIT REACHED (#{sent_count} emails sent). Stopping job."
+        break
+      end
 
       contact_email = next_org.org_contact_email.presence
       contact = OutreachContact.find_or_initialize_by(organization: next_org)
@@ -22,8 +32,12 @@ class OutreachCampaignJob < ApplicationJob
         mailed_count += 1
       elsif contact_email.present?
         # HAS EMAIL: Send it
-        send_email_outreach(contact, contact_email)
-        sent_count += 1
+        # Only increment sent_count if the email was actually sent successfully
+        if send_email_outreach(contact, contact_email)
+          sent_count += 1
+          # Rate limit: Wait 5 seconds between emails to be safe
+          sleep 5.seconds
+        end
       else
         # NO EMAIL
         if @outreach_type == "email_only"
@@ -38,11 +52,8 @@ class OutreachCampaignJob < ApplicationJob
           mailed_count += 1
         end
       end
-
-      # Rate limit only if we actually sent an email
-      sleep 2.seconds unless @outreach_type == "mail_only"
     end
-    Rails.logger.info "Campaign Complete. Sent: #{sent_count}, Mailed: #{mailed_count}, Skipped: #{skipped_count}"
+    Rails.logger.info "Campaign Complete. Sent: #{sent_count}/#{daily_limit}, Mailed: #{mailed_count}, Skipped: #{skipped_count}"
   end
 
   private
@@ -77,9 +88,12 @@ class OutreachCampaignJob < ApplicationJob
       mail.deliver_now
       contact.update!(status: :pending, last_contact_at: Time.current)
       contact.outreach_logs.create!(log_type: :email_sent, details: "Email sent to #{email}\nSubject: #{mail.subject}")
+      Rails.logger.info "✓ Sent email to #{contact.organization.name}"
+      true # Return true to count as sent
     rescue => e
       contact.update!(status: :needs_mailing)
       Rails.logger.error "Failed to send: #{e.message}"
+      false # Return false to not count against daily limit (optional, usually safer not to count failures)
     end
   end
 end
