@@ -13,17 +13,9 @@ class OutreachPlannerController < ApplicationController
   def create
     campaign_name = params[:campaign_name].presence || "Unnamed Campaign"
     profile_scope_name = params[:profile_scope_name]
-    outreach_type = params[:outreach_type] || "combined"
-
-    unless PROFILE_PRESETS.key?(profile_scope_name)
-      redirect_to outreach_planner_index_path, alert: "Invalid profile selected."
-      return
-    end
-
     session[:campaign_name] = campaign_name
     session[:profile_scope_name] = profile_scope_name
-    session[:outreach_type] = outreach_type
-
+    session[:outreach_type] = nil
     redirect_to outreach_planner_path(id: "summary")
   end
 
@@ -33,39 +25,32 @@ class OutreachPlannerController < ApplicationController
 
     base_scope = Organization.public_send(@profile_scope_name)
 
-    # Calculate stats based on Outreach Type
-    case @outreach_type
-    when "email_only"
-      @total_target_count = base_scope.where.not(org_contact_email: nil).count
-      @orgs_with_email_count = @total_target_count
-      @orgs_skipped_count = base_scope.where(org_contact_email: nil).count
-    when "mail_only"
-      @total_target_count = base_scope.count
-      @orgs_with_email_count = 0
-      @orgs_needs_mail_count = @total_target_count
-    else # combined
-      @total_target_count = base_scope.count
-      @orgs_with_email_count = base_scope.where.not(org_contact_email: nil).count
-      @orgs_needs_mail_count = @total_target_count - @orgs_with_email_count
-    end
+    @total_org_count = base_scope.count
+
+    # UPDATED: Only count emails containing '@'
+    @with_email_count = base_scope.where("org_contact_email LIKE '%@%'").count
+
+    @without_email_count = @total_org_count - @with_email_count
   end
 
   def review
+    if params[:outreach_type].present?
+      session[:outreach_type] = params[:outreach_type]
+    end
     load_session_data
     return unless @campaign_name
 
+    @outreach_type ||= "combined"
     scope = Organization.public_send(@profile_scope_name)
 
-    # Filter 1: Outreach Type (Email Only logic)
+    # UPDATED: Strict filtering
     if @outreach_type == "email_only"
-      scope = scope.where.not(org_contact_email: nil)
+      scope = scope.where("org_contact_email LIKE '%@%'")
     end
 
-    # Filter 2: Exclude Active Conversations (Pending/Accepted/Rejected)
-    # We WANT to show 'ready_for_email_outreach' and 'needs_mailing' as they will be processed.
-    ids_active_conversation = OutreachContact.where(status: [ "pending", "accepted", "rejected", "needs_response" ]).pluck(:organization_id)
+    ids_active = OutreachContact.where(status: [ "pending", "accepted", "rejected", "needs_response" ]).pluck(:organization_id)
 
-    scope = scope.where.not(id: ids_active_conversation)
+    scope = scope.where.not(id: ids_active)
                  .includes(:outreach_contact)
                  .order(name: :asc)
 
@@ -80,9 +65,8 @@ class OutreachPlannerController < ApplicationController
     @profile_scope_name = session[:profile_scope_name]
     @outreach_type = session[:outreach_type]
     @profile_display_name = PROFILE_PRESETS[@profile_scope_name]
-
     unless @campaign_name && @profile_scope_name
-      redirect_to outreach_planner_index_path, alert: "Session expired. Please start over."
+      redirect_to outreach_planner_index_path, alert: "Session expired."
     end
   end
 end

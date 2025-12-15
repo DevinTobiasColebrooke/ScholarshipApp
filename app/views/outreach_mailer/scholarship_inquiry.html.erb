@@ -12,6 +12,13 @@
       margin: 0 auto;
       padding: 20px;
     }
+    ul {
+      padding-left: 20px;
+      margin-top: 5px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
     .signature {
       margin-top: 30px;
       border-top: 1px solid #ddd;
@@ -33,23 +40,37 @@
     .signature-details a:hover {
       text-decoration: underline;
     }
-    .award-mention {
-      font-weight: 500;
-    }
   </style>
 </head>
 <body>
-  <p></p>
+  <p>Dear <%= @organization.name.titleize %> Leadership,</p>
 
-  <p>My name is Johanna Roberts, and I am currently pursuing a bachelor's degree. I am reaching out to learn more about potential educational support opportunities through your organization.</p>
+  <p>I am writing to inquire about small, discretionary educational sponsorships for high-performing working adults.</p>
 
-  <p>As a mid-20s professional who has been honored with the <span class="award-mention">Disney Legacy Award</span>, I have always strived for excellence both academically and professionally. I am highly motivated to complete my degree and expand the ways I can give back.</p>
+  <p>I am a nontraditional student who has spent the last seven years working full-time in leadership roles to self-fund my education. As of <strong>October 17, 2025,</strong> I was accepted into the <strong>Bachelor of Business Leadership</strong> program at the University of Massachusetts Global<strong>.</strong></p>
 
-  <p>If your organization offers grants or scholarships for independent students, I would be grateful for the opportunity to apply for assistance.</p>
+  <p><strong>The Situation:</strong><br>
+  While I am working additional shifts to cover the majority of my tuition, the cost of required course materials, textbooks, and student fees creates a recurring coverage gap that can delay progress if left unaddressed.</p>
 
-  <p>Thank you for considering my request.</p>
+  <p><strong>The Ask:</strong><br>
+  I am not seeking a large scholarship. I am reaching out to community organizations for <strong>micro-grants of $25–$100</strong> to help cover specific educational line items such as books or technology fees. Even small contributions compound quickly and allow me to continue my studies without interruption.</p>
 
-  <p>Let's go the distance.</p>
+  <p><strong>Why I Am a Safe Investment:</strong></p>
+  <ul>
+    <li><strong>Top 1% Performance:</strong> Recipient of the <strong>Disney Legacy Award,</strong> granted to fewer than <strong>1% of 1%</strong> of Disney Cast Members globally</li>
+    <li><strong>Academic Consistency: 3.5 GPA</strong> maintained while balancing full-time (often 50+ hour) leadership roles</li>
+    <li><strong>Service:</strong> Active volunteer with <strong>Fisher House Foundation</strong> and <strong>Toys for Tots,</strong> with a strong respect for the stewardship of community dollars</li>
+  </ul>
+
+  <p><strong>Transparency & Verification:</strong><br>
+  All contributions are directed exclusively to a verified <strong>529 Education Savings Plan</strong> and used strictly for educational expenses. Rather than attaching documents, I’ve made my academic and professional summary available here:<br>
+  <a href="https://johannalucilleroberts.com" target="_blank">johannalucilleroberts.com</a></p>
+
+  <p>If your organization supports individuals who demonstrate grit, leadership, and long-term community return<strong>,</strong> I would be grateful for your consideration.</p>
+
+  <p><em><strong>Let’s go the distance.</strong></em></p>
+
+  <p><strong>Respectfully,</strong></p>
 
   <div class="signature">
     <div class="signature-name">Johanna Lucille Roberts</div>

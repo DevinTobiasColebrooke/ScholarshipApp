@@ -93,8 +93,21 @@ class Organization < ApplicationRecord
     where.not(where_clause)
   }
 
+  scope :exclude_health_disability_keywords, -> {
+    exclusion_keywords = [
+      "blind", "visually impaired", "cancer", "disease", "disability", "disabled",
+      "handicap", "deaf", "hearing impaired", "survivor", "autism", "syndrome",
+      "disorder", "illness", "patient", "paralysis", "amputee"
+    ]
+
+    where_clause = exclusion_keywords.map { |k| "restrictions_on_awards_txt ILIKE '%#{k}%'" }.join(" OR ")
+    where.not(where_clause)
+  }
+
   scope :profile_white_woman_26, -> {
-    comprehensive_scholarship_search.exclude_demographic_keywords
+    comprehensive_scholarship_search
+      .exclude_demographic_keywords
+      .exclude_health_disability_keywords
   }
 
   def has_grants_in_xml?

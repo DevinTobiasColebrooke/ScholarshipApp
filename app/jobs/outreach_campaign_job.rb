@@ -6,7 +6,6 @@ class OutreachCampaignJob < ApplicationJob
     @campaign_name = campaign_name
     @outreach_type = outreach_type
 
-    # Load limit from config (default to 50 if missing)
     daily_limit = defined?(GMAIL_CONFIG) ? GMAIL_CONFIG[:daily_limit] : 50
 
     Rails.logger.info "Starting Campaign '#{@campaign_name}' (Type: #{@outreach_type})"
@@ -17,37 +16,34 @@ class OutreachCampaignJob < ApplicationJob
     skipped_count = 0
 
     while next_org = find_next_organization
-
-      # SAFETY CHECK: Stop if we hit the daily limit
       if sent_count >= daily_limit
         Rails.logger.warn "🛑 DAILY LIMIT REACHED (#{sent_count} emails sent). Stopping job."
         break
       end
 
-      contact_email = next_org.org_contact_email.presence
+      # UPDATED: Strict check for valid email format
+      raw_email = next_org.org_contact_email.presence
+      contact_email = (raw_email && raw_email.include?("@")) ? raw_email : nil
+
       contact = OutreachContact.find_or_initialize_by(organization: next_org)
 
       if @outreach_type == "mail_only"
         mark_for_mailing(contact)
         mailed_count += 1
       elsif contact_email.present?
-        # HAS EMAIL: Send it
-        # Only increment sent_count if the email was actually sent successfully
+        # HAS VALID EMAIL (@): Send it
         if send_email_outreach(contact, contact_email)
           sent_count += 1
-          # Rate limit: Wait 5 seconds between emails to be safe
           sleep 5.seconds
         end
       else
-        # NO EMAIL
+        # NO VALID EMAIL (nil or website url)
         if @outreach_type == "email_only"
-          # Claim it as processed/skipped for this campaign
           contact.status = :needs_mailing
           contact.campaign_name = @campaign_name
           contact.save!
           skipped_count += 1
         else
-          # Combined mode -> Mark for mailing
           mark_for_mailing(contact)
           mailed_count += 1
         end
@@ -60,19 +56,10 @@ class OutreachCampaignJob < ApplicationJob
 
   def find_next_organization
     eligible_orgs = Organization.public_send(@profile_name)
-
-    # 1. IDs already processed BY THIS SPECIFIC CAMPAIGN run
-    #    (So we don't process the same org twice in this loop)
     ids_done_this_campaign = OutreachContact.where(campaign_name: @campaign_name).pluck(:organization_id)
-
-    # 2. IDs that are "Active" in conversation from ANY previous effort
-    #    (We generally don't want to interrupt pending/accepted/rejected threads)
-    #    Note: We DO want to pick up 'ready_for_email_outreach' and 'needs_mailing'
     ids_active_conversation = OutreachContact.where(status: [ "pending", "accepted", "rejected", "needs_response" ]).pluck(:organization_id)
-
     ids_to_exclude = (ids_done_this_campaign + ids_active_conversation).uniq
 
-    # Find next org that isn't excluded
     eligible_orgs.where.not(id: ids_to_exclude).order(name: :asc).first
   end
 
@@ -81,7 +68,6 @@ class OutreachCampaignJob < ApplicationJob
   end
 
   def send_email_outreach(contact, email)
-    # Update to 'ready' first to ensure data integrity before send
     contact.update!(status: :ready_for_email_outreach, contact_email: email, campaign_name: @campaign_name)
     begin
       mail = OutreachMailer.scholarship_inquiry(contact)
@@ -89,11 +75,11 @@ class OutreachCampaignJob < ApplicationJob
       contact.update!(status: :pending, last_contact_at: Time.current)
       contact.outreach_logs.create!(log_type: :email_sent, details: "Email sent to #{email}\nSubject: #{mail.subject}")
       Rails.logger.info "✓ Sent email to #{contact.organization.name}"
-      true # Return true to count as sent
+      true
     rescue => e
       contact.update!(status: :needs_mailing)
       Rails.logger.error "Failed to send: #{e.message}"
-      false # Return false to not count against daily limit (optional, usually safer not to count failures)
+      false
     end
   end
 end

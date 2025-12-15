@@ -3,11 +3,16 @@
     <div>
       <h1 class="text-3xl font-bold text-gray-900">Review Recipients</h1>
       <p class="text-gray-600 mt-1">
-        Found <strong><%= number_with_delimiter(@total_recipients) %></strong> organizations for <strong><%= @campaign_name %></strong>
+        Found <strong><%= number_with_delimiter(@total_recipients) %></strong> remaining organizations.
       </p>
+      <% if defined?(GMAIL_CONFIG) %>
+        <p class="text-xs text-orange-600 font-semibold mt-1">
+          ⚠️ Safety Limit Active: System will send max <%= GMAIL_CONFIG[:daily_limit] %> emails per run.
+        </p>
+      <% end %>
     </div>
     
-    <%= button_to "Start Campaign Now", 
+    <%= button_to "Launch Campaign & Send Emails", 
         outreach_contacts_path, 
         method: :post,
         params: { 
@@ -15,11 +20,12 @@
           campaign_name: @campaign_name,
           outreach_type: @outreach_type
         },
-        data: { turbo_confirm: "Start processing #{@total_recipients} organizations?" },
-        class: "bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:-translate-y-0.5" %>
+        data: { turbo_confirm: "Ready? This will process up to #{GMAIL_CONFIG[:daily_limit]} emails." },
+        class: "bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg transform transition hover:-translate-y-0.5 cursor-pointer" %>
   </div>
 
   <%= turbo_frame_tag "outreach_review_results" do %>
+    <%# ... table code remains the same ... %>
     <div class="bg-white shadow overflow-hidden sm:rounded-lg border border-gray-200">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -42,9 +48,15 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm">
                  <% if org.outreach_contact %>
-                   <span class="px-2 py-1 rounded-full text-xs font-semibold <%= org.outreach_contact.status_color_class %>">
-                     <%= org.outreach_contact.status.humanize %>
-                   </span>
+                   <% if org.outreach_contact.status == 'needs_mailing' && org.org_contact_email.present? %>
+                      <span class="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                        Ready (Email Found)
+                      </span>
+                   <% else %>
+                      <span class="px-2 py-1 rounded-full text-xs font-semibold <%= org.outreach_contact.status_color_class %>">
+                        <%= org.outreach_contact.status.humanize %>
+                      </span>
+                   <% end %>
                  <% else %>
                    <span class="text-gray-400 text-xs">New / Untouched</span>
                  <% end %>

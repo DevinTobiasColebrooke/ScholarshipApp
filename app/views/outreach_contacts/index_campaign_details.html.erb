@@ -8,6 +8,11 @@
       </div>
       <h1 class="text-3xl font-bold text-gray-900"><%= @campaign_name %></h1>
     </div>
+    
+    <%# Auto-refresh helper (optional) %>
+    <div class="text-xs text-gray-400">
+       <span data-controller="auto-refresh">Auto-refreshing...</span>
+    </div>
   </div>
 
   <%# Filter Tabs %>
@@ -40,7 +45,7 @@
       </table>
     </div>
     
-    <div class="py-4 flex justify-center">
+    <div class="py-6 flex justify-center">
       <% if @pagy %>
         <%== @pagy.series_nav(data: { turbo_frame: "outreach_contacts_list" }) %>
       <% end %>

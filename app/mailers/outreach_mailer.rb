@@ -6,7 +6,7 @@ class OutreachMailer < ApplicationMailer
 
     mail(
       to: @recipient_email,
-      subject: "We can go the distance"
+      subject: "Inquiry: Disney Legacy Scholar Seeking Micro-Grant / Book Fund Support"
     )
   end
 end

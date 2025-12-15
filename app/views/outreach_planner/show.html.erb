@@ -1,67 +1,93 @@
-<div class="max-w-xl mx-auto py-10 w-full">
+<div class="max-w-2xl mx-auto py-10 w-full">
   <div class="flex justify-between items-center mb-8">
-    <h1 class="text-3xl font-bold text-gray-900">Campaign Summary</h1>
-    <%= link_to "Edit", outreach_planner_index_path, class: "text-indigo-600 hover:text-indigo-800 font-medium" %>
+    <h1 class="text-3xl font-bold text-gray-900">Campaign Strategy</h1>
+    <%= link_to "Start Over", outreach_planner_index_path, class: "text-gray-500 hover:text-gray-700 text-sm" %>
   </div>
 
-  <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 space-y-6">
+  <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-100 space-y-8">
     
-    <%# Info Block %>
-    <div class="border-b pb-4 grid grid-cols-2 gap-4">
-      <div>
-        <p class="text-xs text-gray-500 uppercase font-bold">Campaign</p>
-        <p class="text-lg font-bold text-gray-900"><%= @campaign_name %></p>
-      </div>
-      <div>
-        <p class="text-xs text-gray-500 uppercase font-bold">Method</p>
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
-          <%= @outreach_type.humanize %>
-        </span>
-      </div>
+    <%# Header %>
+    <div class="border-b pb-4">
+      <p class="text-sm text-gray-500 uppercase tracking-wide font-semibold">Campaign</p>
+      <p class="text-xl font-bold text-gray-900"><%= @campaign_name %></p>
+      <p class="text-sm text-indigo-600 font-medium mt-1"><%= @profile_display_name %></p>
     </div>
 
-    <%# Stats Block %>
+    <%# Stats Grid %>
     <div>
-      <h3 class="text-lg font-semibold text-gray-800 mb-3">Target Audience</h3>
-      
-      <div class="bg-gray-50 p-6 rounded-xl text-center mb-4">
-        <span class="block text-4xl font-extrabold text-gray-900"><%= number_with_delimiter(@total_target_count) %></span>
-        <span class="text-sm text-gray-600 font-medium">Recipients in this Campaign</span>
-      </div>
-
+      <h3 class="text-lg font-semibold text-gray-800 mb-3">Audience Analysis</h3>
       <div class="grid grid-cols-2 gap-4">
-        <% if @outreach_type == "mail_only" %>
-          <div class="col-span-2 bg-orange-50 p-4 rounded-lg text-center border border-orange-100">
-            <span class="block text-2xl font-bold text-orange-700"><%= number_with_delimiter(@orgs_needs_mail_count) %></span>
-            <span class="text-xs text-orange-600 font-bold uppercase">To Physical Mail</span>
-          </div>
-        <% else %>
-          <%# Email Stats %>
-          <div class="bg-green-50 p-4 rounded-lg text-center border border-green-100">
-            <span class="block text-2xl font-bold text-green-700"><%= number_with_delimiter(@orgs_with_email_count) %></span>
-            <span class="text-xs text-green-600 font-bold uppercase">Via Email</span>
-          </div>
-          
-          <%# Mail/Skipped Stats %>
-          <% if @outreach_type == "email_only" %>
-             <div class="bg-gray-100 p-4 rounded-lg text-center border border-gray-200 opacity-75">
-              <span class="block text-2xl font-bold text-gray-500"><%= number_with_delimiter(@orgs_skipped_count) %></span>
-              <span class="text-xs text-gray-500 font-bold uppercase">Skipped (No Email)</span>
-            </div>
-          <% else %>
-            <div class="bg-orange-50 p-4 rounded-lg text-center border border-orange-100">
-              <span class="block text-2xl font-bold text-orange-700"><%= number_with_delimiter(@orgs_needs_mail_count) %></span>
-              <span class="text-xs text-orange-600 font-bold uppercase">Via Mail</span>
-            </div>
-          <% end %>
-        <% end %>
+        <div class="col-span-2 bg-indigo-50 p-4 rounded-lg text-center border border-indigo-100">
+          <span class="block text-4xl font-extrabold text-indigo-700"><%= number_with_delimiter(@total_org_count) %></span>
+          <span class="text-sm text-indigo-600 font-bold uppercase">Total Matches</span>
+        </div>
+        
+        <div class="bg-green-50 p-4 rounded-lg text-center border border-green-100">
+          <span class="block text-2xl font-bold text-green-700"><%= number_with_delimiter(@with_email_count) %></span>
+          <span class="text-xs text-green-600 font-bold uppercase">Have Email</span>
+        </div>
+        
+        <div class="bg-orange-50 p-4 rounded-lg text-center border border-orange-100">
+          <span class="block text-2xl font-bold text-orange-700"><%= number_with_delimiter(@without_email_count) %></span>
+          <span class="text-xs text-orange-600 font-bold uppercase">Missing Email</span>
+        </div>
       </div>
     </div>
 
-    <div class="pt-4">
-      <%= link_to "Continue to Review List →", 
-          review_outreach_planner_index_path, 
-          class: "block w-full text-center py-3 px-4 bg-indigo-600 text-white font-bold rounded-lg shadow hover:bg-indigo-700 transition duration-200" %>
-    </div>
+    <%# Method Selection Form %>
+    <%= form_with url: review_outreach_planner_index_path, method: :get, local: true, class: "pt-4 border-t" do |form| %>
+      <h3 class="text-lg font-semibold text-gray-800 mb-4">Step 2: Select Outreach Strategy</h3>
+      
+      <div class="space-y-4">
+        
+        <%# Hybrid %>
+        <label class="relative flex items-start p-4 border rounded-lg hover:bg-indigo-50 cursor-pointer transition border-gray-200 has-[:checked]:border-indigo-500 has-[:checked]:bg-indigo-50 ring-0 has-[:checked]:ring-1 has-[:checked]:ring-indigo-500">
+          <div class="flex items-center h-5">
+            <%= form.radio_button :outreach_type, "combined", checked: true, class: "h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500" %>
+          </div>
+          <div class="ml-3 text-sm">
+            <span class="block font-bold text-gray-900">Hybrid (Email + Mail)</span>
+            <span class="block text-gray-600 mt-1">
+              • Send <strong><%= number_with_delimiter(@with_email_count) %></strong> emails.<br>
+              • Generate mailing list for <strong><%= number_with_delimiter(@without_email_count) %></strong> organizations.
+            </span>
+          </div>
+        </label>
+
+        <%# Email Only %>
+        <label class="relative flex items-start p-4 border rounded-lg hover:bg-green-50 cursor-pointer transition border-gray-200 has-[:checked]:border-green-500 has-[:checked]:bg-green-50 ring-0 has-[:checked]:ring-1 has-[:checked]:ring-green-500">
+          <div class="flex items-center h-5">
+            <%= form.radio_button :outreach_type, "email_only", class: "h-4 w-4 text-green-600 border-gray-300 focus:ring-green-500" %>
+          </div>
+          <div class="ml-3 text-sm">
+            <span class="block font-bold text-gray-900">Email Only</span>
+            <span class="block text-gray-600 mt-1">
+              • Send <strong><%= number_with_delimiter(@with_email_count) %></strong> emails.<br>
+              • Skip the <%= number_with_delimiter(@without_email_count) %> organizations without emails.
+            </span>
+          </div>
+        </label>
+
+        <%# Mail Only %>
+        <label class="relative flex items-start p-4 border rounded-lg hover:bg-orange-50 cursor-pointer transition border-gray-200 has-[:checked]:border-orange-500 has-[:checked]:bg-orange-50 ring-0 has-[:checked]:ring-1 has-[:checked]:ring-orange-500">
+          <div class="flex items-center h-5">
+            <%= form.radio_button :outreach_type, "mail_only", class: "h-4 w-4 text-orange-600 border-gray-300 focus:ring-orange-500" %>
+          </div>
+          <div class="ml-3 text-sm">
+            <span class="block font-bold text-gray-900">Physical Mail Only</span>
+            <span class="block text-gray-600 mt-1">
+              • Send 0 emails.<br>
+              • Generate mailing list for all <strong><%= number_with_delimiter(@total_org_count) %></strong> organizations.
+            </span>
+          </div>
+        </label>
+      </div>
+
+      <div class="mt-8">
+        <%= form.submit "Next: Review Recipient List →", 
+            class: "w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer" %>
+      </div>
+    <% end %>
+
   </div>
 </div>
