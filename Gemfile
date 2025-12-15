@@ -42,7 +42,7 @@ gem "faraday", "~> 2.14"
 gem "ruby-openai", "~> 6.0"
 
 # Agnostic pagination in plain ruby
-gem "pagy", "~> 43.0"
+gem "pagy", "~> 43.2"
 
 
 
