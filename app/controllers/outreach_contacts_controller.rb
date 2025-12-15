@@ -51,4 +51,20 @@ class OutreachContactsController < ApplicationController
     @contact.update(status: params[:status])
     redirect_back fallback_location: outreach_contacts_path(campaign_name: @contact.campaign_name)
   end
+
+  def destroy
+    @contact = OutreachContact.find(params[:id])
+    @contact.destroy
+
+    respond_to do |format|
+      format.turbo_stream { render turbo_stream: turbo_stream.remove("#{ActionView::RecordIdentifier.dom_id(@contact)}_row") }
+      format.html { redirect_back fallback_location: outreach_contacts_path, notice: "Organization removed." }
+    end
+  end
+
+  # NEW: Trigger inbox sync manually
+  def sync_inbox
+    InboxSyncService.sync
+    redirect_back fallback_location: outreach_contacts_path, notice: "Inbox synced. Statuses updated based on replies and bounces."
+  end
 end

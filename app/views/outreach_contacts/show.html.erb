@@ -1,0 +1,53 @@
+<%= turbo_frame_tag "log_dropdown_#{@contact.id}" do %>
+  <div class="border-l-4 <%= @contact.status_color_class.split.last %> pl-6 pr-6 py-4 shadow-inner">
+    
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h3 class="text-lg font-bold text-gray-900">Activity History</h3>
+        <p class="text-sm text-gray-500">
+          Campaign: <span class="font-medium text-gray-700"><%= @contact.campaign_name %></span>
+        </p>
+      </div>
+      
+      <div class="flex items-center space-x-2">
+         <span class="text-xs text-gray-500 uppercase font-bold mr-2">Update Status:</span>
+         
+         <%# UPDATED LIST OF BUTTONS %>
+         <% ["pending", "accepted", "follow_up_later", "rejected", "needs_response"].each do |s| %>
+           <%= button_to s.humanize, update_status_outreach_contact_path(@contact, status: s),
+               class: "px-3 py-1 text-xs font-medium rounded border transition-colors cursor-pointer 
+                      #{ @contact.status == s ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100' }" %>
+         <% end %>
+         
+         <button type="button" 
+                 onclick="this.closest('turbo-frame').innerHTML = ''"
+                 class="ml-4 text-gray-400 hover:text-gray-600 text-sm cursor-pointer underline">
+           Close
+         </button>
+      </div>
+    </div>
+
+    <div class="space-y-4 max-h-96 overflow-y-auto">
+      <% if @logs.any? %>
+        <% @logs.each do |log| %>
+          <div class="flex space-x-4 text-sm border-b border-gray-200 pb-3 last:border-0 last:pb-0">
+            <div class="text-gray-500 w-32 shrink-0 pt-1">
+              <%= log.created_at.strftime("%b %d, %l:%M %p") %>
+            </div>
+            <div class="flex-1 bg-white p-3 rounded border border-gray-100">
+              <span class="font-semibold text-indigo-700 block mb-1 text-xs uppercase tracking-wide">
+                <%= log.log_type.humanize %>
+              </span>
+              <div class="text-gray-800 whitespace-pre-wrap font-mono text-xs"><%= log.details %></div>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="text-center py-4 text-gray-500 italic bg-white rounded border border-gray-100">
+          No activity recorded yet.
+        </div>
+      <% end %>
+    </div>
+    
+  </div>
+<% end %>

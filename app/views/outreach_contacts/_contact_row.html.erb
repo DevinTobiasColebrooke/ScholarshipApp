@@ -1,7 +1,7 @@
 <% contact ||= local_assigns[:contact] %>
 <% target_frame_id = "log_dropdown_#{contact.id}" %>
 <% status_classes = contact.status_color_class.gsub('border-','text-').gsub('100', '800') %>
-<%# Use a class for the border on the <tr> for visual highlighting %>
+
 <tr id="<%= dom_id(contact) %>_row" class="hover:bg-gray-50 border-l-4 <%= contact.status_color_class.split.last %>">
   
   <td class="px-6 py-4 whitespace-nowrap">
@@ -23,22 +23,29 @@
     <%= contact.updated_at.to_formatted_s(:short) %>
   </td>
 
-  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+  <td class="px-6 py-4 text-sm text-gray-500 break-all max-w-xs">
     <%= contact.contact_email.presence || contact.inferred_contact_email.presence || 'N/A' %>
   </td>
   
-  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-    <%# Clickable row: Use a link to load the details into a new row via Turbo %>
+  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
     <%= link_to "History", outreach_contact_path(contact), 
                 class: "text-indigo-600 hover:text-indigo-900",
                 data: { 
                   turbo_frame: target_frame_id,
-                  turbo_action: "after" 
+                  turbo_action: "replace" 
                 } %>
+    
+    <%= link_to "Remove", outreach_contact_path(contact),
+                data: { turbo_method: :delete, turbo_confirm: "Are you sure? This will remove them from the campaign." },
+                class: "text-red-500 hover:text-red-700 cursor-pointer" %>
   </td>
 </tr>
 
-<%# This turbo frame is initially empty and is targeted by the 'History' link above %>
-<%= turbo_frame_tag target_frame_id, data: { status_color: contact.status_color_class } do %>
-  <%# The content from outreach_contacts/show.html.erb will be rendered here %>
-<% end %>
+<%# THE ACCORDION ROW: Hidden by default (via p-0 and empty content), fills up when clicked %>
+<tr>
+  <td colspan="5" class="p-0 border-none bg-gray-50">
+    <%= turbo_frame_tag target_frame_id do %>
+       <%# Content loads here %>
+    <% end %>
+  </td>
+</tr>

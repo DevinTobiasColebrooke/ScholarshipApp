@@ -6,77 +6,109 @@ class OutreachCampaignJob < ApplicationJob
     @campaign_name = campaign_name
     @outreach_type = outreach_type
 
-    daily_limit = defined?(GMAIL_CONFIG) ? GMAIL_CONFIG[:daily_limit] : 50
+    # 1. POPULATE PHASE
+    # Ensure everyone we intend to email is visible in the table immediately.
+    populate_campaign_list
 
-    Rails.logger.info "Starting Campaign '#{@campaign_name}' (Type: #{@outreach_type})"
-    Rails.logger.info "⚠️ Enforcing Daily Limit: #{daily_limit} emails max per run."
-
-    sent_count = 0
-    mailed_count = 0
-    skipped_count = 0
-
-    while next_org = find_next_organization
-      if sent_count >= daily_limit
-        Rails.logger.warn "🛑 DAILY LIMIT REACHED (#{sent_count} emails sent). Stopping job."
-        break
-      end
-
-      # UPDATED: Strict check for valid email format
-      raw_email = next_org.org_contact_email.presence
-      contact_email = (raw_email && raw_email.include?("@")) ? raw_email : nil
-
-      contact = OutreachContact.find_or_initialize_by(organization: next_org)
-
-      if @outreach_type == "mail_only"
-        mark_for_mailing(contact)
-        mailed_count += 1
-      elsif contact_email.present?
-        # HAS VALID EMAIL (@): Send it
-        if send_email_outreach(contact, contact_email)
-          sent_count += 1
-          sleep 5.seconds
-        end
-      else
-        # NO VALID EMAIL (nil or website url)
-        if @outreach_type == "email_only"
-          contact.status = :needs_mailing
-          contact.campaign_name = @campaign_name
-          contact.save!
-          skipped_count += 1
-        else
-          mark_for_mailing(contact)
-          mailed_count += 1
-        end
-      end
-    end
-    Rails.logger.info "Campaign Complete. Sent: #{sent_count}/#{daily_limit}, Mailed: #{mailed_count}, Skipped: #{skipped_count}"
+    # 2. SENDING PHASE
+    # Process the queue up to the daily limit.
+    process_email_queue
   end
 
   private
 
-  def find_next_organization
-    eligible_orgs = Organization.public_send(@profile_name)
-    ids_done_this_campaign = OutreachContact.where(campaign_name: @campaign_name).pluck(:organization_id)
-    ids_active_conversation = OutreachContact.where(status: [ "pending", "accepted", "rejected", "needs_response" ]).pluck(:organization_id)
-    ids_to_exclude = (ids_done_this_campaign + ids_active_conversation).uniq
+  def populate_campaign_list
+    Rails.logger.info "--- Step 1: Populating Campaign List for '#{@campaign_name}' ---"
 
-    eligible_orgs.where.not(id: ids_to_exclude).order(name: :asc).first
+    # Start with the base profile (e.g., White Woman / 26)
+    scope = Organization.public_send(@profile_name)
+
+    # Apply strict "Email Only" filter if selected
+    if @outreach_type == "email_only"
+      scope = scope.where("org_contact_email LIKE '%@%'")
+    end
+
+    # Exclude organizations already in THIS campaign
+    existing_org_ids = OutreachContact.where(campaign_name: @campaign_name).select(:organization_id)
+    scope = scope.where.not(id: existing_org_ids)
+
+    # Exclude organizations currently active in ANY conversation (Pending/Response/etc)
+    active_ids = OutreachContact.where(status: [ "pending", "accepted", "rejected", "needs_response" ]).select(:organization_id)
+    scope = scope.where.not(id: active_ids)
+
+    # Bulk create the records so they show up in the UI
+    count_added = 0
+    scope.find_each do |org|
+      has_valid_email = org.org_contact_email.present? && org.org_contact_email.include?("@")
+
+      # Determine status
+      status = if has_valid_email
+                 :ready_for_email_outreach
+      elsif @outreach_type == "email_only"
+                 nil # Skip entirely
+      else
+                 :needs_mailing
+      end
+
+      next unless status
+
+      OutreachContact.create(
+        organization: org,
+        campaign_name: @campaign_name,
+        status: status,
+        contact_email: (has_valid_email ? org.org_contact_email : nil)
+      )
+      count_added += 1
+    end
+
+    Rails.logger.info "--- Populated #{count_added} new contacts into the tracker ---"
   end
 
-  def mark_for_mailing(contact)
-    contact.update!(status: :needs_mailing, campaign_name: @campaign_name)
+  def process_email_queue
+    daily_limit = defined?(GMAIL_CONFIG) ? GMAIL_CONFIG[:daily_limit] : 500
+    sleep_time = defined?(GMAIL_CONFIG) ? GMAIL_CONFIG[:rate_limit_seconds] : 3
+
+    Rails.logger.info "--- Step 2: Processing Queue (Limit: #{daily_limit}) ---"
+
+    # Fetch contacts specifically for this campaign that are ready to go
+    queue = OutreachContact.where(campaign_name: @campaign_name, status: :ready_for_email_outreach)
+                           .order(:id)
+                           .limit(daily_limit)
+
+    if queue.empty?
+      Rails.logger.info "No emails waiting to be sent for this campaign."
+      return
+    end
+
+    sent_count = 0
+
+    queue.each do |contact|
+      if send_email_outreach(contact)
+        sent_count += 1
+        sleep sleep_time
+      end
+    end
+
+    Rails.logger.info "--- Batch Complete. Sent: #{sent_count}/#{daily_limit} ---"
   end
 
-  def send_email_outreach(contact, email)
-    contact.update!(status: :ready_for_email_outreach, contact_email: email, campaign_name: @campaign_name)
+  def send_email_outreach(contact)
+    # Double check email validity before attempting
+    unless contact.contact_email.present? && contact.contact_email.include?("@")
+      contact.update!(status: :needs_mailing)
+      return false
+    end
+
     begin
       mail = OutreachMailer.scholarship_inquiry(contact)
       mail.deliver_now
+
       contact.update!(status: :pending, last_contact_at: Time.current)
-      contact.outreach_logs.create!(log_type: :email_sent, details: "Email sent to #{email}\nSubject: #{mail.subject}")
+      contact.outreach_logs.create!(log_type: :email_sent, details: "Email sent to #{contact.contact_email}\nSubject: #{mail.subject}")
       Rails.logger.info "✓ Sent email to #{contact.organization.name}"
       true
     rescue => e
+      # If sending fails, revert to needs_mailing so we don't lose track of them
       contact.update!(status: :needs_mailing)
       Rails.logger.error "Failed to send: #{e.message}"
       false

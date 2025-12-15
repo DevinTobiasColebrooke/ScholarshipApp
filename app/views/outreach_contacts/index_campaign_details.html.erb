@@ -9,27 +9,36 @@
       <h1 class="text-3xl font-bold text-gray-900"><%= @campaign_name %></h1>
     </div>
     
-    <%# Auto-refresh helper (optional) %>
-    <div class="text-xs text-gray-400">
-       <span data-controller="auto-refresh">Auto-refreshing...</span>
+    <div class="flex flex-col items-end space-y-2">
+       <%# NEW BUTTON %>
+       <%= button_to "↻ Update Statuses (Check Inbox)", 
+           sync_inbox_outreach_contacts_path, 
+           method: :post,
+           class: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-xs shadow transition cursor-pointer",
+           data: { turbo: false, disable_with: "Scanning Inbox..." } %>
+       
+       <div class="text-xs text-gray-400">
+          <span data-controller="auto-refresh">Auto-refreshing view...</span>
+       </div>
     </div>
   </div>
 
   <%# Filter Tabs %>
-  <div class="mb-6 border-b border-gray-200 overflow-x-auto">
-    <nav class="-mb-px flex space-x-8">
+  <div class="mb-6 border-b border-gray-200">
+    <nav class="-mb-px flex flex-wrap gap-x-8 gap-y-2">
       <%= link_to "All", outreach_contacts_path(campaign_name: @campaign_name), 
           class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:status].blank? ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500'}" %>
       
-      <% ["pending", "needs_response", "needs_mailing", "accepted", "rejected"].each do |status| %>
-        <%= link_to status.humanize, outreach_contacts_path(campaign_name: @campaign_name, status: status), 
+      <% ["ready_for_email_outreach", "pending", "needs_response", "accepted", "follow_up_later", "rejected"].each do |status| %>
+        <% label = status == "ready_for_email_outreach" ? "Queued / Ready" : status.humanize %>
+        <%= link_to label, outreach_contacts_path(campaign_name: @campaign_name, status: status), 
             class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:status] == status ? 'border-indigo-500 text-indigo-600' : 'border-transparent text-gray-500'}" %>
       <% end %>
     </nav>
   </div>
 
   <%= turbo_frame_tag "outreach_contacts_list" do %>
-    <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+    <div class="bg-white shadow overflow-x-auto sm:rounded-lg">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
