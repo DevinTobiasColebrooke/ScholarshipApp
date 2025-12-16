@@ -7,11 +7,15 @@ class OutreachCampaignJob < ApplicationJob
     @outreach_type = outreach_type
 
     # 1. POPULATE PHASE
-    # Ensure everyone we intend to email is visible in the table immediately.
-    populate_campaign_list
+    # Only populate if a profile is provided.
+    # If nil, we assume we are just resuming/processing the existing queue.
+    if @profile_name.present?
+      populate_campaign_list
+    else
+      Rails.logger.info "--- Resuming Campaign '#{@campaign_name}' (Sending Only) ---"
+    end
 
     # 2. SENDING PHASE
-    # Process the queue up to the daily limit.
     process_email_queue
   end
 

@@ -62,9 +62,20 @@ class OutreachContactsController < ApplicationController
     end
   end
 
-  # NEW: Trigger inbox sync manually
   def sync_inbox
     InboxSyncService.sync
     redirect_back fallback_location: outreach_contacts_path, notice: "Inbox synced. Statuses updated based on replies and bounces."
+  end
+
+  # NEW: Resume sending emails for an existing campaign
+  def resume_campaign
+    campaign_name = params[:campaign_name]
+    if campaign_name.present?
+      # Pass nil for profile_name to indicate "Send Only" mode
+      OutreachCampaignJob.perform_later(nil, campaign_name)
+      redirect_back fallback_location: outreach_contacts_path, notice: "Sending next batch of emails in background..."
+    else
+      redirect_back fallback_location: outreach_contacts_path, alert: "Campaign name missing."
+    end
   end
 end

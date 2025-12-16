@@ -14,7 +14,8 @@ Rails.application.routes.draw do
 
   resources :outreach_contacts, only: [ :index, :show, :create, :destroy ] do
     post :update_status, on: :member
-    post :sync_inbox, on: :collection # <--- NEW ROUTE
+    post :sync_inbox, on: :collection
+    post :resume_campaign, on: :collection # <--- NEW ROUTE
   end
 
   get "up" => "rails/health#show", as: :rails_health_check

@@ -10,12 +10,21 @@
     </div>
     
     <div class="flex flex-col items-end space-y-2">
-       <%# NEW BUTTON %>
-       <%= button_to "↻ Update Statuses (Check Inbox)", 
-           sync_inbox_outreach_contacts_path, 
-           method: :post,
-           class: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-xs shadow transition cursor-pointer",
-           data: { turbo: false, disable_with: "Scanning Inbox..." } %>
+       <div class="flex space-x-2">
+         <%# NEW BUTTON: Send Emails %>
+         <%= button_to "Send Next Batch", 
+             resume_campaign_outreach_contacts_path(campaign_name: @campaign_name), 
+             method: :post,
+             class: "bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded text-xs shadow transition cursor-pointer",
+             data: { turbo: false, disable_with: "Starting..." } %>
+
+         <%# Update Statuses Button %>
+         <%= button_to "↻ Check Inbox", 
+             sync_inbox_outreach_contacts_path, 
+             method: :post,
+             class: "bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded text-xs shadow transition cursor-pointer",
+             data: { turbo: false, disable_with: "Syncing..." } %>
+       </div>
        
        <div class="text-xs text-gray-400">
           <span data-controller="auto-refresh">Auto-refreshing view...</span>
