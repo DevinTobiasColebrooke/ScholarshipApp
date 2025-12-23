@@ -39,7 +39,7 @@ gem "ferrum"
 gem "faraday", "~> 2.14"
 
 # Ruby gem for OpenAI API (and compatible local LLMs)
-gem "ruby-openai", "~> 6.0"
+gem "ruby-openai", "~> 8.3"
 
 # Agnostic pagination in plain ruby
 gem "pagy", "~> 43.0"
